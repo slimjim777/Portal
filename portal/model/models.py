@@ -1,25 +1,41 @@
 # -*- coding: utf-8 -*-
 from portal.model.sagecrm import Connection
 from portal import app
-import sqlite3
+import psycopg2
 import os, datetime
+import urlparse
+import bcrypt
+
+
+class Database(object):
+
+    def __init__(self):
+        urlparse.uses_netloc.append("postgres")
+        url = urlparse.urlparse(os.environ["DATABASE_URL"])
+        
+        self.sqlconn = psycopg2.connect(
+            database=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port
+        )
+
 
 class User(object):
-    def __init__(self):
-        if os.path.isfile('portal.db'):
-            self.sqlconn = sqlite3.connect('portal.db')
-            self.cursor = self.sqlconn.cursor()
-        else:
-            self.sqlconn = sqlite3.connect('portal.db')
-            self.cursor = self.sqlconn.cursor()
-            self.cursor.execute('CREATE TABLE Visitor (personid text, username text, password text, name text, access text)')
 
+    def __init__(self):
+        db = Database()
+        self.sqlconn = db.sqlconn
+        
+    def _hashed(self, pwd):
+        return bcrypt.hashpw(pwd, os.environ["SALT"])
 
     def login(self, username, password):
         """
         Verify the user login details.
         """
-        self.cursor.execute("SELECT * FROM Visitor WHERE username=? AND password=?", (username,password))
+        self.cursor.execute("SELECT * FROM Visitor WHERE username=? AND password=?", (username, self._hashed(password)))
         row = self.cursor.fetchone()
         self.sqlconn.close()
         
@@ -38,6 +54,9 @@ class SageCRMWrapper(object):
     def __init__(self):
         self.connection = Connection(app.config['SAGE_WSDL'])
         self.connection.login( app.config['SAGE_USER'], app.config['SAGE_PASSWORD'] )
+        
+        db = Database()
+        self.sqlconn = db.sqlconn
         
 
 class Event(SageCRMWrapper):

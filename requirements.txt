@@ -3,8 +3,12 @@ Jinja2==2.7.1
 MarkupSafe==0.18
 WTForms==1.0.4
 Werkzeug==0.9.3
+bcrypt==1.0.2
+cffi==0.7.2
 distribute==0.6.31
 gunicorn==17.5
 itsdangerous==0.23
+psycopg2==2.5.1
+pycparser==2.10
 suds==0.4
 wsgiref==0.1.2
