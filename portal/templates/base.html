@@ -1,0 +1,34 @@
+<html>
+<head>
+    <title>Lifechurch Portal</title>
+    <script src="/static/js/jquery-1.9.1.js"></script>
+    <script src="/static/js/jquery-ui-1.10.3.custom.js"></script>
+    <link href="/static/css/pepper-grinder/jquery-ui-1.10.3.custom.css" rel="stylesheet">
+    <link href="/static/css/portal.css" rel="stylesheet">
+
+    <script>
+      $(function() {
+        $( "#accordion" ).accordion();
+        $( "#tabs" ).tabs();
+      });
+    </script>
+
+</head>
+<body>
+<h1 align="center">
+    Lifechurch Portal Login
+</h1>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
+    {% for message in messages %}
+      {{ message }}<br />
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+{% block body %}{% endblock %}
+</body>
+</html>

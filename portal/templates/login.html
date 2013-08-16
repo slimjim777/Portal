@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+<div id="accordion">
+  <h3>Login to the Portal</h3>
+  <div>
+
+    {% from "_formhelpers.html" import render_field %}
+    <form method=post action="/">
+        {{ render_field(form.username) }}
+        {{ render_field(form.password) }}
+      <p><input type="submit" value="Login"></p>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}

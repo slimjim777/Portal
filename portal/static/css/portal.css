@@ -1,0 +1,8 @@
+label, input {
+  display: block;
+  
+}
+
+.ui-state-error {
+    margin-top: -1em;
+}
