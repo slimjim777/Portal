@@ -1,7 +1,10 @@
 from flask import Flask
+import os
 
 app = Flask(__name__)
-#app.config.from_envvar('PORTAL_SETTINGS')
+
+app.debug = True
+app.secret_key = os.environ["SECRET_KEY"]
 
 import portal.views
 import portal.rest

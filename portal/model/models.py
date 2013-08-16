@@ -6,7 +6,6 @@ import os, datetime
 import urlparse
 import hashlib
 
-
 class Database(object):
 
     def __init__(self):
@@ -27,6 +26,7 @@ class User(object):
     def __init__(self):
         db = Database()
         self.sqlconn = db.sqlconn
+        self.cursor = self.sqlconn.cursor()
         
     def _hashed(self, pwd):
         return hashlib.sha224(os.environ["SALT"] + pwd).hexdigest()
@@ -35,9 +35,9 @@ class User(object):
         """
         Verify the user login details.
         """
-        self.cursor.execute("SELECT * FROM Visitor WHERE username=? AND password=?", (username, self._hashed(password)))
+        self.cursor.execute("SELECT * FROM Visitor WHERE username=%s AND password=%s", (username, self._hashed(password)))
         row = self.cursor.fetchone()
-        self.sqlconn.close()
+        #self.sqlconn.close()
         
         if row:
             return {
