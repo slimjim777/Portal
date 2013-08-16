@@ -4,7 +4,7 @@ from portal import app
 import psycopg2
 import os, datetime
 import urlparse
-import bcrypt
+import hashlib
 
 
 class Database(object):
@@ -29,7 +29,7 @@ class User(object):
         self.sqlconn = db.sqlconn
         
     def _hashed(self, pwd):
-        return bcrypt.hashpw(pwd, os.environ["SALT"])
+        return hashlib.sha224(os.environ["SALT"] + pwd).hexdigest()
 
     def login(self, username, password):
         """
