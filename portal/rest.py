@@ -26,8 +26,8 @@ def events():
     """
     Get the Events for Kids Work.
     """
-    #if not is_authenticated():
-    #    abort(403)
+    if not is_authenticated():
+        abort(403)
 
     event = Event()
     event_list = event.get_events()
@@ -39,8 +39,8 @@ def family():
     """
     Scanning of the Family tag.
     """
-    #if not is_authenticated():
-    #    abort(403)
+    if not is_authenticated():
+        abort(403)
 
     # Validate the JSON message
     if not request.json:
@@ -58,8 +58,8 @@ def person():
     """
     Scanning of the Person tag.
     """
-    #if not is_authenticated():
-    #    abort(403)
+    if not is_authenticated():
+        abort(403)
 
     # Validate the JSON message
     if not request.json:
@@ -93,6 +93,9 @@ def registrations():
     """
     Get the list of people registered for the event.
     """
+    if not is_authenticated():
+        abort(403)
+
     # Validate the JSON message
     if not request.json:
         abort(400)
@@ -109,6 +112,9 @@ def scan():
     """
     Get the details of the person/family for the tag.
     """
+    if not is_authenticated():
+        abort(403)
+
     # Validate the JSON message
     if not request.json:
         abort(400)
@@ -121,8 +127,8 @@ def scan():
 
 
 def _register(action):
-    #if not is_authenticated():
-    #    abort(403)
+    if not is_authenticated():
+        abort(403)
 
     # Validate the JSON message
     if not request.json:
