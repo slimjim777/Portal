@@ -2,6 +2,7 @@
 from portal.model.sagecrm import Connection
 from portal import app
 import psycopg2
+import psycopg2.extras
 import os, datetime
 import urlparse
 import hashlib
@@ -26,7 +27,7 @@ class User(object):
     def __init__(self):
         db = Database()
         self.sqlconn = db.sqlconn
-        self.cursor = self.sqlconn.cursor()
+        self.cursor = self.sqlconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
     def _hashed(self, pwd):
         return hashlib.sha224(os.environ["SALT"] + pwd).hexdigest()
@@ -52,15 +53,16 @@ class User(object):
 
 class SageCRMWrapper(object):
     def __init__(self):
-        self.connection = Connection(app.config['SAGE_WSDL'])
-        self.connection.login( app.config['SAGE_USER'], app.config['SAGE_PASSWORD'] )
+        #self.connection = Connection(os.environ['SAGE_WSDL'])
+        #self.connection.login( os.environ['SAGE_USER'], os.environ['SAGE_PASSWORD'] )
         
         db = Database()
         self.sqlconn = db.sqlconn
+        self.cursor = self.sqlconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
 
 class Event(SageCRMWrapper):
-     def get_events(self):
+     def get_events_crm(self):
         """
         Get the Kids Work events from Sage CRM.
         """
@@ -72,13 +74,68 @@ class Event(SageCRMWrapper):
                 'event_id': e.eventid,
                 'name': e.name,
                 })
-                
+        
         return event_list
+        
+     def get_events(self):
+        """
+        Get the Kids Work events from the local database.
+        """
+        self.cursor.execute("SELECT * FROM event WHERE type='Kidswork'")
+        
+        event_list = []
+        for e in self.cursor:
+            event_list.append({
+                'event_id': e['eventid'],
+                'name': e['name'],
+                })
+        
+        return event_list    
         
 
 class Person(SageCRMWrapper):
-    
+
     def family(self, family_number, event_id):
+        """
+        Get the check to see if any children are signed-in for this tag using the local database.
+        """
+        # Get the family record for details
+        family_record = self._family(family_number)
+
+        # Check for event registrations for this date
+        registered = self._reg_list(family_number, event_id)
+        family_record.update(registered)
+        
+        return family_record
+
+
+    def _reg_list(self, family_number, event_id):
+        today = datetime.date.today().isoformat()        
+        sql = """select p.*, r.status from registration r 
+              inner join person p on person_tag=tagnumber 
+              where r.family_tag=%s and r.eventid=%s and r.event_date=%s"""
+        self.cursor.execute(sql, (family_number, event_id, today,))
+
+        registered = {}
+        signed_in = []
+        signed_out = []
+        for p in self.cursor:
+            print p
+            person = {
+                'name': p['name'],
+                'personid': p['personid'],
+                'tagnumber': p['tagnumber'],
+                'parentid': p['family_tag'],
+            }
+            if p['status']=='Signed-In':
+                signed_in.append( person )
+            elif p['status']=='Signed-Out':
+                signed_in.append( person )
+                
+        return {'signed_in':signed_in, 'signed_out':signed_out}     
+
+
+    def family_crm(self, family_number, event_id):
         """
         Get the check to see if any children are signed-in for this tag.
         """
@@ -120,6 +177,33 @@ class Person(SageCRMWrapper):
 
     def registrations(self, event_id):
         """
+        Get the registrations for the event from local database.
+        """
+        today = datetime.date.today().isoformat()
+        
+        self.cursor.execute("select * from registration where eventid=%s and event_date=%s", (event_id, today,))
+        rows = self.cursor.fetchall()
+        
+        if not rows:
+            return []
+        
+        records = []
+        for o in rows:
+            record = {
+                'stage': o['status'],
+            }
+            
+            # Lookup the Person
+            p = self._person(tag_number=o['person_tag'], details=True)
+            record.update(p)
+            
+            records.append(record)
+        
+        return records
+
+
+    def registrations_crm(self, event_id):
+        """
         Get the registrations for the event.
         """
         today = datetime.date.today().isoformat()
@@ -152,17 +236,18 @@ class Person(SageCRMWrapper):
         """
         prefix = tag[0:1]
         tag_number = tag[1:]
-        print "---",tag, prefix, tag_number
         
         if prefix == 'F': 
             record = self._family(tag_number)
-        elif prefix == 'C':
+        elif prefix == 'C' or prefix == 'L':
             record = self._person(tag_number=tag_number, details=True)
+        else:
+            record = {'error': 'The format of the tag appears to be invalid.'}
             
         return record
 
 
-    def _register(self, family_number, people, event_id, stage, status):
+    def _register_crm(self, family_number, people, event_id, stage, status):
         today = datetime.date.today().isoformat()
         for p in people:
             # Get the person record details for this child's tag number
@@ -204,6 +289,30 @@ class Person(SageCRMWrapper):
         return {"result":"success"}
 
 
+    def _register(self, family_number, people, event_id, stage, status):
+        print family_number, people, event_id, stage, status
+    
+        today = datetime.date.today().isoformat()
+        for p in people:
+            # Check if the registration (Opportunity) record exists
+            sql = "select * from registration where person_tag=%s and family_tag=%s and eventid=%s and event_date=%s"
+            self.cursor.execute(sql, (p, family_number, event_id, today,))
+            row = self.cursor.fetchone()
+            print "---row", row
+            
+            if row:
+                # Update the existing record
+                self.cursor.execute("update registration set status=%s where registrationid=%s", (stage, row['registrationid'],))
+                self.sqlconn.commit()              
+            else:
+                # Add a new registration for the person
+                sql = "insert into registration (person_tag, family_tag, eventid, event_date, status) values (%s,%s,%s,%s,%s)"
+                self.cursor.execute(sql, (p, family_number, event_id, today, stage,))
+                self.sqlconn.commit()
+                
+        return {"result":"success"}
+
+
     def _opportunity_defaults(self):
         oppo = self.connection.client.factory.create("opportunity")
         oppo.opened = datetime.datetime.now().isoformat('T')
@@ -217,9 +326,41 @@ class Person(SageCRMWrapper):
         oppo.assigneduserid = 1
         oppo.source = 'Kidswork App'
         return oppo
+  
     
-        
     def _family(self, family_number):
+        """
+        Get family details from the local database.
+        """
+        self.cursor.execute("SELECT * FROM family WHERE tagnumber=%s", (family_number,))
+        row = self.cursor.fetchone()
+        
+        if row:
+            # Get the children for the parent
+            self.cursor.execute("SELECT * FROM person WHERE family_tag=%s", (family_number,))
+            children = []
+            
+            for c in self.cursor:
+                child = {
+                    'name': c['name'],
+                    'personid': c['personid'],
+                    'tagnumber': c['tagnumber'],
+                    'group': c['kids_group'],
+                }
+                children.append(child)                
+        
+            # Format the family record
+            record = {
+                'tagnumber': row['tagnumber'],
+                'parent_name': row['name'],
+                'children': children,
+            }
+        else:
+            record = {'error': 'Cannot find Family record for the parent tag ' + family_number}           
+        return  record
+        
+        
+    def _family_crm(self, family_number):
         family_list = self.connection.client.service.query("comp_c_familynumber=" + family_number, "Company")
         if 'records' not in family_list:
             return {'error': 'Cannot find Family record for the parent tag ' + family_number}
@@ -265,7 +406,7 @@ class Person(SageCRMWrapper):
         return {'signed_in':signed_in, 'signed_out':signed_out}
         
 
-    def _person(self, person_id=None, tag_number=None, details=None):
+    def _person_crm(self, person_id=None, tag_number=None, details=None):
         if person_id:
             where = "pers_personid=%s" % person_id
         elif tag_number:
@@ -301,7 +442,46 @@ class Person(SageCRMWrapper):
             })        
         app.logger.debug(p)
         return record
+
+
+    def _person(self, person_id=None, tag_number=None, details=None):
+        if person_id:
+            self.cursor.execute("SELECT * FROM person WHERE personid=%s", (person_id,))
+        elif tag_number:
+            self.cursor.execute("SELECT * FROM person WHERE tagnumber=%s", (tag_number,))
+        else:
+            return {'error': 'Person ID or Tag Number must be supplied for Person search.'}
+            
+        p = self.cursor.fetchone()
+        if not p:
+            return {'error': 'No records found for the tag.'}
         
+        record = {
+            'name': p['name'],
+            'personid': p['personid'],
+            'tagnumber': p['tagnumber'],
+            'parentid': p['family_tag'],
+        }
+        
+        # Deal with multi-select lists
+        if p['medical_info']:
+            medical_info = p['medical_info'].split(',')
+        else:
+            medical_info = []
+        
+        # Add full details of the person, if requested.
+        if details:
+            f = self._family(p['family_tag'])
+            record.update({
+                'parent': f.get('name', ''),
+                'dob': p['dob'] and p['dob'].strftime('%d/%m%/%Y') or '',
+                'group': p['kids_group'] or '',
+                'team': p['kids_team'] or '',
+                'school_year': p['school_year'],
+                'medical_info': medical_info,
+                'medical_notes': p['medical_notes'] or '',
+            })
+        return record        
         
     def _parents(self, company_id):
         family_list = self.connection.client.service.query("comp_companyid=%s" % company_id, "Company")

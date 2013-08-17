@@ -50,7 +50,6 @@ def family():
     
     person = Person()
     result = person.family(request.json['family_number'], request.json['event_id'])
-    app.logger.debug(result);
     return jsonify(result)
     
     
