@@ -53,12 +53,15 @@ class User(object):
 
 class SageCRMWrapper(object):
     def __init__(self):
-        #self.connection = Connection(os.environ['SAGE_WSDL'])
-        #self.connection.login( os.environ['SAGE_USER'], os.environ['SAGE_PASSWORD'] )
-        
+        self.connection = None
         db = Database()
         self.sqlconn = db.sqlconn
         self.cursor = self.sqlconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
+           
+    def crm_login(self):
+        self.connection = Connection(os.environ['SAGE_WSDL'])
+        self.connection.login( os.environ['SAGE_USER'], os.environ['SAGE_PASSWORD'] )
         
 
 class Event(SageCRMWrapper):
@@ -95,6 +98,28 @@ class Event(SageCRMWrapper):
 
 class Person(SageCRMWrapper):
 
+    def family_upsert(self, record):
+        """
+        Update or insert the provided family record.
+        """
+        if 'familyid' not in record:
+            return False
+            
+        # Try updating the record and get the rowcount to see if it worked
+        sql_update = "UPDATE family SET name=%(name)s, tagnumber=%(tagnumber)s WHERE familyid=%(familyid)s"
+        self.cursor.execute(sql_update, record)
+        if self.cursor.rowcount > 0:
+            # Updated an existing record
+            self.sqlconn.commit()
+        else:
+            # Create a new family record
+            sql_insert = "INSERT INTO family VALUES (%(familyid)s,%(name)s,%(tagnumber)s)"
+            self.cursor.execute(sql_insert, record)
+            self.sqlconn.commit()
+            
+        return True
+        
+        
     def family(self, family_number, event_id):
         """
         Get the check to see if any children are signed-in for this tag using the local database.
@@ -116,7 +141,6 @@ class Person(SageCRMWrapper):
               where r.family_tag=%s and r.eventid=%s and r.event_date=%s"""
         self.cursor.execute(sql, (family_number, event_id, today,))
 
-        registered = {}
         signed_in = []
         signed_out = []
         for p in self.cursor:
@@ -488,3 +512,41 @@ class Person(SageCRMWrapper):
         return family_list.records[0]
 
 
+
+class CRMPerson(SageCRMWrapper):
+    TERRITORIES = {
+        'Worldwide':47483640,
+        'Active':-2147483638,
+        'Inactive':-2147483639,
+        'Kidswork':-89478504,
+        'Kidswork Inactive':-89478505
+    }
+
+    def family(self, from_date):
+        """
+        Gets the family records from the CRM system that have changed since the from date.
+        """
+        # Make sure we are logged into the CRM system
+        if not self.connection:
+            self.crm_login()
+        
+        if not from_date:
+            from_date = '1980-01-01 00:00:00'
+        where = "comp_updateddate >='%s' and comp_secterr='%s'" % (from_date, self.TERRITORIES['Kidswork'])
+        
+        family_list = self.connection.client.service.query(where, "Company")
+        
+        if not 'records' in family_list:
+            return []
+        
+        families = []
+        for f in family_list.records:
+            record = {
+                'familyid': f.companyid,
+                'name': f.name,
+                'tagnumber': f.c_familynumber,
+            }
+            families.append(record)
+        
+        return families
+        

@@ -15,3 +15,15 @@ def lastsync():
     sync_list = sync.lastsync()
     return jsonify( result=sync_list )
 
+
+@app.route("/sync/v1.0/startsync", methods=['GET'])
+def start_sync():
+    #if not is_authenticated():
+    #    abort(403)
+
+    sync = SyncCRM()
+    sync_rec = sync.start_sync()
+    #sync_rec = sync.run_sync()
+    return jsonify( sync_rec )
+    
+
