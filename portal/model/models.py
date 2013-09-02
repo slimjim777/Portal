@@ -106,18 +106,65 @@ class Person(SageCRMWrapper):
             return False
             
         # Try updating the record and get the rowcount to see if it worked
-        sql_update = "UPDATE family SET name=%(name)s, tagnumber=%(tagnumber)s WHERE familyid=%(familyid)s"
+        sql_update = """
+            UPDATE family 
+            SET name=%(name)s, tagnumber=%(tagnumber)s, territory=%(territory)s
+            WHERE familyid=%(familyid)s"""
         self.cursor.execute(sql_update, record)
         if self.cursor.rowcount > 0:
             # Updated an existing record
             self.sqlconn.commit()
         else:
             # Create a new family record
-            sql_insert = "INSERT INTO family VALUES (%(familyid)s,%(name)s,%(tagnumber)s)"
+            sql_insert = """
+                INSERT INTO family 
+                VALUES (%(familyid)s,%(name)s,%(tagnumber)s,%(territory)s
+                )"""
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
             
         return True
+ 
+ 
+    def person_upsert(self, record):
+        """
+        Update or insert the provided person record.
+        """
+        if 'personid' not in record:
+            return False
+            
+        # Try updating the record and get the rowcount to see if it worked
+        sql_update = """
+            UPDATE person 
+            SET name=%(name)s, family_tag=%(family_tag)s, tagnumber=%(tagnumber)s,
+            type=%(type)s, kids_group=%(kids_group)s, kids_team=%(kids_team)s,
+            school_year=%(school_year)s, dob=%(dob)s, medical_info=%(medical_info)s,
+            medical_notes=%(medical_notes)s,territory=%(territory)s,
+            firstname=%(firstname)s, gender=%(gender)s,
+            marital_status=%(marital_status)s, lifegroup=%(lifegroup)s, address1=%(address1)s,
+            address2=%(address2)s, city=%(city)s, postcode=%(postcode)s, country=%(country)s,
+            home_phone=%(home_phone)s, mobile_phone=%(mobile_phone)s, email=%(email)s
+            WHERE personid=%(personid)s
+        """
+        self.cursor.execute(sql_update, record)
+        if self.cursor.rowcount > 0:
+            # Updated an existing record
+            self.sqlconn.commit()
+        else:
+            # Create a new person record (field order must match the table)
+            sql_insert = """
+                INSERT INTO person 
+                VALUES (%(personid)s,%(name)s,%(family_tag)s,%(tagnumber)s,%(type)s,
+                %(kids_group)s,%(kids_team)s,%(school_year)s,%(dob)s,
+                %(medical_info)s,%(medical_notes)s,%(territory)s,%(firstname)s,%(gender)s,
+                %(marital_status)s,%(lifegroup)s,%(address1)s,%(address2)s,%(city)s,
+                %(postcode)s,%(country)s,%(home_phone)s,%(mobile_phone)s,email=%(email)s
+                )"""
+            self.cursor.execute(sql_insert, record)
+            self.sqlconn.commit()
+            
+        return True    
+ 
         
         
     def family(self, family_number, event_id):
@@ -169,7 +216,6 @@ class Person(SageCRMWrapper):
         # Check for event registrations for this date
         today = datetime.date.today().isoformat()
         where = "oppo_customerref='%s' and oppo_c_eventid=%s and oppo_opened>='%s 00:00:00' and oppo_opened<='%s 23:59:59'" % (family_number, event_id, today, today)
-        app.logger.debug(where)
 
         reg_list = self.connection.client.service.query(where, "Opportunity")
         registered = self._registrations(reg_list)
@@ -245,12 +291,10 @@ class Person(SageCRMWrapper):
             
             # Lookup the Person
             p = self._person(person_id=o.primarypersonid, details=True)
-            app.logger.debug(p)
             record.update(p)
             
             records.append(record)
         
-        app.logger.debug(records)
         return records
 
 
@@ -286,8 +330,6 @@ class Person(SageCRMWrapper):
             # Check if the registration (Opportunity) record exists
             where = "oppo_primarypersonid=%s and oppo_customerref='%s' and oppo_c_eventid=%s and oppo_opened>='%s 00:00:00' and oppo_opened<='%s 23:59:59'" % (pers['personid'], family_number, event_id, today, today)
             reg_list = self.connection.client.service.query(where, "Opportunity")
-            app.logger.debug(where)
-            app.logger.debug(reg_list)
             if 'records' in reg_list:
                 # Update the existing record
                 o = reg_list.records[0]
@@ -299,7 +341,6 @@ class Person(SageCRMWrapper):
                 self.connection.client.service.update("opportunity", [oppo])
             else:
                 # Add a new registration
-                app.logger.debug(family_number)
                 oppo = self._opportunity_defaults()
                 oppo.primarycompanyid = pers['parentid']
                 oppo.customerref = family_number
@@ -464,7 +505,6 @@ class Person(SageCRMWrapper):
                 'medical_info': medical_info,
                 'medical_notes': getattr(p, 'c_medical_notes', ''),
             })        
-        app.logger.debug(p)
         return record
 
 
@@ -530,23 +570,121 @@ class CRMPerson(SageCRMWrapper):
         if not self.connection:
             self.crm_login()
         
+        # Query the CRM system
         if not from_date:
             from_date = '1980-01-01 00:00:00'
-        where = "comp_updateddate >='%s' and comp_secterr='%s'" % (from_date, self.TERRITORIES['Kidswork'])
-        
+        where = "comp_updateddate >='%s' and comp_secterr='%s'" % (from_date, self.TERRITORIES['Kidswork'])       
         family_list = self.connection.client.service.query(where, "Company")
         
-        if not 'records' in family_list:
+        if 'records' not in family_list:
             return []
         
         families = []
         for f in family_list.records:
+            name = getattr(f, 'c_salutation','') + ' ' + f.name
+        
             record = {
                 'familyid': f.companyid,
-                'name': f.name,
+                'name': name.strip(),
                 'tagnumber': f.c_familynumber,
+                'territory': f.secterr,
             }
             families.append(record)
         
         return families
+
+
+    def person(self, from_date):
+        """
+        Get the updated person records from the CRM system.
+        """
+        # Make sure we are logged into the CRM system
+        if not self.connection:
+            self.crm_login()
+
+        # Query the CRM system
+        if not from_date:
+            from_date = '1980-01-01 00:00:00'
+        where = "pers_updateddate >='%s' and pers_secterr='%s'" % (from_date, self.TERRITORIES['Kidswork'])       
+        person_list = self.connection.client.service.query(where, "Person")
+        
+        if 'records' not in person_list:
+            return []
+        
+        people = []
+        for p in person_list.records: 
+            # Deal with multi-select lists
+            if getattr(p, 'c_medical_info', None):
+                medical_info = p.c_medical_info.records
+            else:
+                medical_info = []
+                
+            # Get the family tag number for the parent
+            if getattr(p, 'companyid', None):
+                f = self.family_by_id(p.companyid)
+                if not f:
+                    family_tag = 0
+                else:
+                    family_tag = f.c_familynumber
+            
+            # Handle the phone and address records
+            address = p.address.records[0]
+            home_phone = ''
+            mobile_phone = ''
+            if 'records' in getattr(p, 'phone', []):
+                for ph in p.phone.records:
+                    if ph.type=='Business':
+                        home_phone = getattr(ph,'countrycode','') + getattr(ph,'areacode','') + getattr(ph,'number','')
+                    elif ph.type=='Mobile':
+                        mobile_phone = getattr(ph,'countrycode','') + getattr(ph,'areacode','') + getattr(ph,'number','')
+        
+            record = {
+                'personid': p.personid,
+                'name': u'%s %s' % (p.firstname, p.lastname),
+                'type': getattr(p, 'c_type', ''),
+                'family_tag': family_tag,
+                'tagnumber': getattr(p, 'c_tag_number', ''),
+                'kids_group': getattr(p, 'c_kids_group', ''),
+                'kids_team': getattr(p, 'c_kids_team', ''),
+                'school_year': p.c_school_year,
+                'dob': getattr(p, 'c_dob', ''),
+                'medical_info': ','.join(medical_info),
+                'medical_notes': getattr(p, 'c_medical_notes', ''),
+                'territory': p.secterr,
+                'firstname': getattr(p, 'firstname',''),
+                'gender': getattr(p, 'gender',''),
+                'marital_status': getattr(p, 'c_maritalstatus',''),
+                'lifegroup': getattr(p, 'c_caregroup',''),
+                'address1': getattr(address, 'address1',''),
+                'address2': getattr(address, 'address2',''),
+                'city': getattr(address, 'city',''),
+                'postcode': getattr(address, 'postcode',''),
+                'country': getattr(address, 'country',''),
+                'home_phone': home_phone,
+                'mobile_phone': mobile_phone,
+                'email': getattr(p, 'emailaddress',''),
+            }
+            people.append(record)
+        
+        return people
+        
+        
+    def family_by_id(self, familyid):
+        """
+        Get the family record from CRM using it's ID.
+        """
+        # Make sure we are logged into the CRM system
+        if not self.connection:
+            self.crm_login()
+
+        # Query the CRM system
+        where = "comp_companyid=%s" % familyid      
+        record_list = self.connection.client.service.query(where, "Company")
+
+        if 'records' not in record_list:
+            return None
+        else:
+            return record_list.records[0]
+            
+            
         

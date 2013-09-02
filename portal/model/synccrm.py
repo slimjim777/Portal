@@ -60,20 +60,20 @@ class SyncCRM(object):
         for d in dates:
             getattr(self, d['tablename']+'_sync')(d['lastsync'])
         
-        app.logger.info('Task done')
+        app.logger.info('Sync done')
     
 
     def family_sync(self, from_date):
         """
         Sync the updated family records from the CRM system.
         """
+        app.logger.info('Family sync')
         # Store the date/time
         sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
         
         # Get the updated records from CRM
         crm = CRMPerson()
         families = crm.family(from_date)
-        app.logger.debug(families)
         
         # Upsert the records into the Database
         db = Person()
@@ -82,11 +82,21 @@ class SyncCRM(object):
         
         # Update the last sync date
 
-        app.logger.info('Family sync')
         
     def person_sync(self, from_date):
-        time.sleep(3)
         app.logger.info('Person sync')
+        # Store the date/time
+        sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
+
+        # Get the updated records from CRM
+        crm = CRMPerson()
+        records = crm.person(from_date)
+
+        # Upsert the records into the Database
+        db = Person()
+        for r in records:
+            db.person_upsert(r)
+
         
         
         
