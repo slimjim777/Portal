@@ -315,45 +315,6 @@ class Person(SageCRMWrapper):
         return record
 
 
-    def _register_crm(self, family_number, people, event_id, stage, status):
-        today = datetime.date.today().isoformat()
-        for p in people:
-            # Get the person record details for this child's tag number
-            pers = self._person(tag_number=p)
-            
-            # Set the certainty based on the status
-            if status=='Won':
-                certainty = 100
-            else:
-                certainty = 50
-                    
-            # Check if the registration (Opportunity) record exists
-            where = "oppo_primarypersonid=%s and oppo_customerref='%s' and oppo_c_eventid=%s and oppo_opened>='%s 00:00:00' and oppo_opened<='%s 23:59:59'" % (pers['personid'], family_number, event_id, today, today)
-            reg_list = self.connection.client.service.query(where, "Opportunity")
-            if 'records' in reg_list:
-                # Update the existing record
-                o = reg_list.records[0]
-                oppo = self.connection.client.factory.create("opportunity")
-                oppo.opportunityid = o.opportunityid
-                oppo.stage = stage
-                oppo.status = status
-                oppo.certainty = certainty
-                self.connection.client.service.update("opportunity", [oppo])
-            else:
-                # Add a new registration
-                oppo = self._opportunity_defaults()
-                oppo.primarycompanyid = pers['parentid']
-                oppo.customerref = family_number
-                oppo.primarypersonid = pers['personid']
-                oppo.c_eventid = event_id
-                oppo.stage = stage
-                oppo.status = status
-                oppo.certainty = certainty
-                self.connection.client.service.add("opportunity", [oppo])
-                
-        return {"result":"success"}
-
-
     def _register(self, family_number, people, event_id, stage, status):
         print family_number, people, event_id, stage, status
     
@@ -378,19 +339,6 @@ class Person(SageCRMWrapper):
         return {"result":"success"}
 
 
-    def _opportunity_defaults(self):
-        oppo = self.connection.client.factory.create("opportunity")
-        oppo.opened = datetime.datetime.now().isoformat('T')
-        oppo.targetclose = datetime.datetime.now().isoformat('T')
-        oppo.secterr = 'Kidswork'
-        oppo.status = 'In Progress'
-        oppo.currency = 3
-        oppo.forecast_cid = 3
-        oppo.totalquotes_cid = 3
-        oppo.totalorders_cid = 3
-        oppo.assigneduserid = 1
-        oppo.source = 'Kidswork App'
-        return oppo
   
     
     def _family(self, family_number):
@@ -610,9 +558,6 @@ class CRMPerson(SageCRMWrapper):
         """
         Get the updated person records from the CRM system.
         """
-        # Make sure we are logged into the CRM system
-        #self.crm_login()
-
         # Query the CRM system
         if not from_date:
             from_date = '1980-01-01 00:00:00'
@@ -718,5 +663,81 @@ class CRMPerson(SageCRMWrapper):
         else:
             return f.get('tagnumber', 0)
 
-            
+    def registrations(self, from_date):
+        """
+        Push the registrations from the current date to CRM.
+        """
+        if not from_date:
+            from_date = '1980-01-01 00:00:00'
+
+        # Get the registrations from the local db
+        sql = """
+            select f.familyid, p.personid, r.* from registration r
+            inner join family f on f.tagnumber=family_tag
+            inner join person p on p.tagnumber=person_tag
+            where event_date>=%s
+        """
+        self.cursor.execute(sql, (from_date,))
+        rows = self.cursor.fetchall()
         
+        if not rows:
+            return
+            
+        # Push the records to CRM
+        for r in rows:
+            self._register_crm(r['familyid'], r['family_tag'], r['personid'], r['eventid'], r['event_date'].strftime('%Y-%m-%d'), r['status'])
+ 
+ 
+    def _register_crm(self, familyid, family_tag, personid, event_id, event_date, status):
+        oppo_opened = event_date + 'T00:00:00'
+        oppo_targetclose = event_date + 'T23:59:59'
+           
+        # Set the certainty based on the status
+        if status=='Signed-Out':
+            certainty = 100
+            oppo_stage = status
+            oppo_status = 'Won'
+        else:
+            certainty = 50
+            oppo_stage = status
+            oppo_status = 'In Progress'
+                
+        # Check if the registration (Opportunity) record exists
+        where = "oppo_primarypersonid=%s and oppo_customerref='%s' and oppo_c_eventid=%s and oppo_opened>='%s 00:00:00' and oppo_opened<='%s 23:59:59'" % (personid, family_tag, event_id, event_date, event_date)
+        reg_list = self.connection.client.service.query(where, "Opportunity")
+        if 'records' in reg_list:
+            # Update the existing record
+            o = reg_list.records[0]
+            oppo = self.connection.client.factory.create("opportunity")
+            oppo.opportunityid = o.opportunityid
+            oppo.stage = oppo_stage
+            oppo.status = oppo_status
+            oppo.certainty = certainty
+            self.connection.client.service.update("opportunity", [oppo])
+        else:
+            # Add a new registration
+            oppo = self._opportunity_defaults()
+            oppo.primarycompanyid = familyid
+            oppo.customerref = family_tag
+            oppo.primarypersonid = personid
+            oppo.c_eventid = event_id
+            oppo.stage = oppo_stage
+            oppo.status = oppo_status
+            oppo.certainty = certainty
+            oppo.opened = oppo_opened
+            oppo.targetclose = oppo_targetclose
+            self.connection.client.service.add("opportunity", [oppo])
+            
+ 
+    def _opportunity_defaults(self):
+        oppo = self.connection.client.factory.create("opportunity")
+        oppo.secterr = 'Kidswork'
+        oppo.status = 'In Progress'
+        oppo.currency = 3
+        oppo.forecast_cid = 3
+        oppo.totalquotes_cid = 3
+        oppo.totalorders_cid = 3
+        oppo.assigneduserid = 1
+        oppo.source = 'Kidswork App'
+        return oppo
+      

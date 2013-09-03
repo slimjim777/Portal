@@ -131,4 +131,22 @@ class SyncCRM(object):
             self.cursor.execute(s)
             self.sqlconn.commit()
         app.logger.info('Remove inactive records done')
-            
+          
+          
+    def registration_sync(self, from_date):
+        """
+        Push the registrations from the local database to CRM.
+        """
+        app.logger.info('Registration push')
+        # Store the date/time
+        sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
+
+        # Push the registrations to CRM
+        self.crm.registrations(from_date)
+        
+        # Update the last sync date
+        self.update_lastsync('registration', sync_start)
+                
+        app.logger.info('Registration push done')
+
+        
