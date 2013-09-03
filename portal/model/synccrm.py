@@ -50,17 +50,17 @@ class SyncCRM(object):
     
         
     def start_sync(self):
-        gevent.spawn(self.run_sync)
-        return {'sync':'Started'}
+        #gevent.spawn(self.run_sync)
+        #return {'sync':'Started'}
         
-    
-    def run_sync(self):
         dates = self.lastsync()
+        self.crm = CRMPerson()
+        self.crm.crm_login()
         
         for d in dates:
-            getattr(self, d['tablename']+'_sync')(d['lastsync'])
+            gevent.spawn( getattr(self, d['tablename']+'_sync'), d['lastsync'] )
         
-        app.logger.info('Sync done')
+        return {'sync':'Started'}
     
 
     def family_sync(self, from_date):
@@ -72,15 +72,18 @@ class SyncCRM(object):
         sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
         
         # Get the updated records from CRM
-        crm = CRMPerson()
-        families = crm.family(from_date)
+        #crm = CRMPerson()
+        families = self.crm.family(from_date)
         
         # Upsert the records into the Database
         db = Person()
+        app.logger.info('Upsert the family records')
         for f in families:
             db.family_upsert(f)
         
         # Update the last sync date
+
+        app.logger.info('Family sync done')
 
         
     def person_sync(self, from_date):
@@ -89,14 +92,18 @@ class SyncCRM(object):
         sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
 
         # Get the updated records from CRM
-        crm = CRMPerson()
-        records = crm.person(from_date)
+        #crm = CRMPerson()
+        records = self.crm.person(from_date)
 
         # Upsert the records into the Database
         db = Person()
+        app.logger.info('Upsert the person records')
         for r in records:
             db.person_upsert(r)
 
+        # Update the last sync date
+        
+        app.logger.info('Person sync done')
         
         
         

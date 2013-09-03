@@ -158,14 +158,13 @@ class Person(SageCRMWrapper):
                 %(kids_group)s,%(kids_team)s,%(school_year)s,%(dob)s,
                 %(medical_info)s,%(medical_notes)s,%(territory)s,%(firstname)s,%(gender)s,
                 %(marital_status)s,%(lifegroup)s,%(address1)s,%(address2)s,%(city)s,
-                %(postcode)s,%(country)s,%(home_phone)s,%(mobile_phone)s,email=%(email)s
+                %(postcode)s,%(country)s,%(home_phone)s,%(mobile_phone)s,%(email)s
                 )"""
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
             
         return True    
- 
-        
+      
         
     def family(self, family_number, event_id):
         """
@@ -567,50 +566,81 @@ class CRMPerson(SageCRMWrapper):
         Gets the family records from the CRM system that have changed since the from date.
         """
         # Make sure we are logged into the CRM system
-        if not self.connection:
-            self.crm_login()
+        #self.crm_login()
         
         # Query the CRM system
         if not from_date:
             from_date = '1980-01-01 00:00:00'
-        where = "comp_updateddate >='%s' and comp_secterr='%s'" % (from_date, self.TERRITORIES['Kidswork'])       
+        #where = "comp_updateddate >='%s' and comp_secterr<>%s" % (from_date, self.TERRITORIES['Worldwide']) 
+        where = "comp_updateddate >='%s'" % from_date
+        app.logger.debug(where)      
         family_list = self.connection.client.service.query(where, "Company")
         
         if 'records' not in family_list:
             return []
         
+        families = self._family_record(family_list)
+        
+        app.logger.debug(family_list.more)
+        while family_list.more:    
+            family_list = self.connection.client.service.next()
+            next_list = self._family_record(family_list)
+            families.append(next_list)
+            app.logger.debug(family_list.more)
+    
+        app.logger.debug('Fetched %d families' % len(families))
+        return families
+
+
+    def _family_record(self, family_list):
         families = []
         for f in family_list.records:
             name = getattr(f, 'c_salutation','') + ' ' + f.name
-        
+
             record = {
                 'familyid': f.companyid,
                 'name': name.strip(),
-                'tagnumber': f.c_familynumber,
+                'tagnumber': getattr(f, 'c_familynumber', 0),
                 'territory': f.secterr,
             }
             families.append(record)
-        
         return families
-
+        
 
     def person(self, from_date):
         """
         Get the updated person records from the CRM system.
         """
         # Make sure we are logged into the CRM system
-        if not self.connection:
-            self.crm_login()
+        #self.crm_login()
 
         # Query the CRM system
         if not from_date:
             from_date = '1980-01-01 00:00:00'
-        where = "pers_updateddate >='%s' and pers_secterr='%s'" % (from_date, self.TERRITORIES['Kidswork'])       
+        where = "pers_updateddate >='%s' and pers_secterr<>%s" % (from_date, self.TERRITORIES['Worldwide'])       
         person_list = self.connection.client.service.query(where, "Person")
         
         if 'records' not in person_list:
             return []
         
+        people = self._person_record(person_list)
+        app.logger.debug(person_list.more)
+        
+        while person_list.more:    
+            person_list = self.connection.client.service.next()
+            app.logger.debug(person_list)
+            if isinstance(person_list, list):
+                next_list = self._person_record(person_list)
+                people.append(next_list)
+                app.logger.debug(person_list.more)
+            else:
+                break
+    
+        app.logger.debug('Fetched %d people' % len(people))        
+        return people
+
+
+    def _person_record(self, person_list):
         people = []
         for p in person_list.records: 
             # Deal with multi-select lists
@@ -625,10 +655,24 @@ class CRMPerson(SageCRMWrapper):
                 if not f:
                     family_tag = 0
                 else:
-                    family_tag = f.c_familynumber
+                    family_tag = getattr(f, 'c_familynumber', 0)
             
-            # Handle the phone and address records
-            address = p.address.records[0]
+            # Handle the address records
+            if 'records' in getattr(p, 'address', []):
+                address = p.address.records[0]
+                address1 = getattr(address, 'address1','')
+                address2 = getattr(address, 'address2','')
+                city = getattr(address, 'city','')
+                postcode = getattr(address, 'postcode','')
+                country = getattr(address, 'country','')
+            else:
+                address1 = ''
+                address2 = ''
+                city = ''
+                postcode = ''
+                country = ''
+                
+            # Handle the phone records
             home_phone = ''
             mobile_phone = ''
             if 'records' in getattr(p, 'phone', []):
@@ -643,11 +687,11 @@ class CRMPerson(SageCRMWrapper):
                 'name': u'%s %s' % (p.firstname, p.lastname),
                 'type': getattr(p, 'c_type', ''),
                 'family_tag': family_tag,
-                'tagnumber': getattr(p, 'c_tag_number', ''),
+                'tagnumber': getattr(p, 'c_tag_number', 0),
                 'kids_group': getattr(p, 'c_kids_group', ''),
                 'kids_team': getattr(p, 'c_kids_team', ''),
-                'school_year': p.c_school_year,
-                'dob': getattr(p, 'c_dob', ''),
+                'school_year': getattr(p, 'c_school_year', 0),
+                'dob': getattr(p, 'c_dob', None),
                 'medical_info': ','.join(medical_info),
                 'medical_notes': getattr(p, 'c_medical_notes', ''),
                 'territory': p.secterr,
@@ -655,19 +699,18 @@ class CRMPerson(SageCRMWrapper):
                 'gender': getattr(p, 'gender',''),
                 'marital_status': getattr(p, 'c_maritalstatus',''),
                 'lifegroup': getattr(p, 'c_caregroup',''),
-                'address1': getattr(address, 'address1',''),
-                'address2': getattr(address, 'address2',''),
-                'city': getattr(address, 'city',''),
-                'postcode': getattr(address, 'postcode',''),
-                'country': getattr(address, 'country',''),
+                'address1': address1,
+                'address2': address2,
+                'city': city,
+                'postcode': postcode,
+                'country': country,
                 'home_phone': home_phone,
                 'mobile_phone': mobile_phone,
                 'email': getattr(p, 'emailaddress',''),
             }
             people.append(record)
-        
-        return people
-        
+        return people    
+            
         
     def family_by_id(self, familyid):
         """
