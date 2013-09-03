@@ -132,7 +132,8 @@ class Person(SageCRMWrapper):
         """
         if 'personid' not in record:
             return False
-            
+        
+        #app.logger.debug(record)
         # Try updating the record and get the rowcount to see if it worked
         sql_update = """
             UPDATE person 
@@ -571,9 +572,7 @@ class CRMPerson(SageCRMWrapper):
         # Query the CRM system
         if not from_date:
             from_date = '1980-01-01 00:00:00'
-        #where = "comp_updateddate >='%s' and comp_secterr<>%s" % (from_date, self.TERRITORIES['Worldwide']) 
         where = "comp_updateddate >='%s'" % from_date
-        app.logger.debug(where)      
         family_list = self.connection.client.service.query(where, "Company")
         
         if 'records' not in family_list:
@@ -585,7 +584,7 @@ class CRMPerson(SageCRMWrapper):
         while family_list.more:    
             family_list = self.connection.client.service.next()
             next_list = self._family_record(family_list)
-            families.append(next_list)
+            families.extend(next_list)
             app.logger.debug(family_list.more)
     
         app.logger.debug('Fetched %d families' % len(families))
@@ -617,24 +616,20 @@ class CRMPerson(SageCRMWrapper):
         # Query the CRM system
         if not from_date:
             from_date = '1980-01-01 00:00:00'
-        where = "pers_updateddate >='%s' and pers_secterr<>%s" % (from_date, self.TERRITORIES['Worldwide'])       
+        where = "pers_updateddate >='%s'" % from_date       
         person_list = self.connection.client.service.query(where, "Person")
         
         if 'records' not in person_list:
             return []
         
         people = self._person_record(person_list)
-        app.logger.debug(person_list.more)
-        
+
+        app.logger.debug(person_list.more)       
         while person_list.more:    
             person_list = self.connection.client.service.next()
-            app.logger.debug(person_list)
-            if isinstance(person_list, list):
-                next_list = self._person_record(person_list)
-                people.append(next_list)
-                app.logger.debug(person_list.more)
-            else:
-                break
+            next_list = self._person_record(person_list)
+            people.extend(next_list)
+            app.logger.debug(person_list.more)
     
         app.logger.debug('Fetched %d people' % len(people))        
         return people
@@ -651,11 +646,9 @@ class CRMPerson(SageCRMWrapper):
                 
             # Get the family tag number for the parent
             if getattr(p, 'companyid', None):
-                f = self.family_by_id(p.companyid)
-                if not f:
-                    family_tag = 0
-                else:
-                    family_tag = getattr(f, 'c_familynumber', 0)
+                family_tag = self.family_tag(p.companyid)
+            else:
+                family_tag = 0
             
             # Handle the address records
             if 'records' in getattr(p, 'address', []):
@@ -712,22 +705,18 @@ class CRMPerson(SageCRMWrapper):
         return people    
             
         
-    def family_by_id(self, familyid):
+    def family_tag(self, familyid):
         """
-        Get the family record from CRM using it's ID.
+        Get the family tag from the local database using the family ID.
         """
-        # Make sure we are logged into the CRM system
-        if not self.connection:
-            self.crm_login()
+        sql = "SELECT tagnumber FROM family WHERE familyid=%s"
+        self.cursor.execute(sql, (familyid,))
+        f = self.cursor.fetchone()
 
-        # Query the CRM system
-        where = "comp_companyid=%s" % familyid      
-        record_list = self.connection.client.service.query(where, "Company")
-
-        if 'records' not in record_list:
-            return None
+        if not f:
+            return 0
         else:
-            return record_list.records[0]
-            
+            return f.get('tagnumber', 0)
+
             
         

@@ -33,6 +33,11 @@ class SyncCRM(object):
             
         return rows
         
+        
+    def update_lastsync(self, tablename, sync_date):
+        self.cursor.execute('UPDATE sync SET lastsync=%s WHERE tablename=%s', (sync_date,tablename))
+        self.sqlconn.commit()
+        
     
     def upsert(self, entity, records):
         """
@@ -50,17 +55,19 @@ class SyncCRM(object):
     
         
     def start_sync(self):
-        #gevent.spawn(self.run_sync)
-        #return {'sync':'Started'}
-        
+        gevent.spawn(self.run_sync)
+        return {'sync':'Started'}
+
+
+    def run_sync(self):        
         dates = self.lastsync()
         self.crm = CRMPerson()
         self.crm.crm_login()
         
         for d in dates:
-            gevent.spawn( getattr(self, d['tablename']+'_sync'), d['lastsync'] )
+            getattr(self, d['tablename']+'_sync')( d['lastsync'] )
         
-        return {'sync':'Started'}
+        app.logger.info('Sync done')
     
 
     def family_sync(self, from_date):
@@ -72,7 +79,6 @@ class SyncCRM(object):
         sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
         
         # Get the updated records from CRM
-        #crm = CRMPerson()
         families = self.crm.family(from_date)
         
         # Upsert the records into the Database
@@ -82,6 +88,10 @@ class SyncCRM(object):
             db.family_upsert(f)
         
         # Update the last sync date
+        self.update_lastsync('family', sync_start)
+        
+        # Remove inactive records from local db
+        self.remove_inactive(['family'])
 
         app.logger.info('Family sync done')
 
@@ -92,7 +102,6 @@ class SyncCRM(object):
         sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
 
         # Get the updated records from CRM
-        #crm = CRMPerson()
         records = self.crm.person(from_date)
 
         # Upsert the records into the Database
@@ -102,8 +111,24 @@ class SyncCRM(object):
             db.person_upsert(r)
 
         # Update the last sync date
+        self.update_lastsync('person', sync_start)
+
+        # Remove inactive records from local db
+        self.remove_inactive(['person'])
         
         app.logger.info('Person sync done')
         
+    
+    def remove_inactive(self, types=['family', 'person']):
+        """
+        Remove inactive records from the database.
+        """
+        app.logger.info('Remove inactive records')
+        sql = "DELETE FROM %s WHERE territory like '%%Inactive%%'"
         
-        
+        for t in types:
+            s = sql % t
+            self.cursor.execute(s)
+            self.sqlconn.commit()
+        app.logger.info('Remove inactive records done')
+            
