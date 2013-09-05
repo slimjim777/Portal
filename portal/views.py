@@ -92,6 +92,13 @@ def accounts(person_id):
     return render_template('admin.html', row=u, groups=groups, ug=g)
 
 
+@app.route("/accounts/new/", methods=['GET'])
+def accounts_new():
+    if not is_authenticated():
+        flash('Please login to access the Portal')
+        return redirect(url_for('index'))
+
+    return render_template('admin_new.html') 
 
 
 def is_authenticated():

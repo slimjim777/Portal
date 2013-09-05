@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">Create New User</h2>
+
+<div id="messages"></div>
+
+<div id="accordion">
+  <h3>Find Person</h3>
+
+  <div>
+     <div class="row">
+        <!--div class="cell-left"-->
+            <div class="cell-row">
+                 <label for="name">Name:</label>
+                 <input id="name" size="60" class="ui-corner-all" />
+                 <button id="find" onclick="findPerson()">Find</button>
+            </div>
+        <!--/div>
+        <div class="cell-right" id="people">
+        </div-->
+     </div>
+  <div id="people">
+  </div>     
+     
+  </div>
+</div>
+
+<div id="accordion-1">
+  <!--h3>People</h3-->
+
+
+</div>
+
+<script>
+    //$( document ).ready(function() {
+        //$('#find').button();
+    //});
+
+    function findPerson() {
+        var postdata = {
+            name: $('#name').val()
+        };
+        
+        var p = $('#people');
+    
+        var request = $.ajax({
+          type: 'POST',
+          url: '/rest/v1.0/person/find',
+          data: JSON.stringify(postdata),
+          contentType:"application/json",
+          dataType: "json",
+          success: function(data) {
+              var table = '<p>Select the person</p>' +
+                            '<table class="grid"><tr><th>Name</th><th>Email</th></tr>';
+              for (dd in data.result) {
+                  var d = data.result[dd];
+                  table += '<tr><td><a id="b-' + d.personid +'" href="" onclick="selectPerson(event,'+ d.personid +')">' + d.name + '</a></td>' +
+                          '<td>' + d.email + '</td></tr>';                  
+              }
+              table += '</table>';
+              p.append(table);
+              $('#accordion').accordion('refresh');
+              
+          }
+        });
+    }
+    
+    function selectPerson(ev, personid) {
+        ev.preventDefault();
+        console.log(personid);
+
+
+    }
+
+</script>
+
+{% endblock %}
+

@@ -72,6 +72,30 @@ def person():
     return jsonify(result)
 
 
+@app.route("/rest/v1.0/person/find", methods=['POST'])
+def person_find():
+    """
+    Find people using name.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+    
+    person = Person()
+    result = person.find(request.json.get('name',''))
+    rows = []
+    for r in result:
+        rows.append({
+            'personid': r['personid'],
+            'name': r['name'],
+            'email': r['email'],
+        })
+    return jsonify(result=rows)
+
+
 @app.route("/rest/v1.0/territory", methods=['POST'])
 def territory():
     """

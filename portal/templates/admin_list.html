@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block body %}
 
-<h2 class="heading">Admin</h2>
+<h2 class="heading">User Accounts</h2>
+
+<button id="create-user" style="font-size:0.8em;" onclick="newUserAccount()">Create User Account</button>
 
 <div id="accordion">
-  <h3>User Accounts</h3>
+  <h3>Users</h3>
 
   <div>  
   {% if not rows %}
@@ -31,7 +33,16 @@
         // Select the page in the radio button
         $( "#r-admin" )[0].checked = true;
         $( "#radio" ).buttonset("refresh");
+        $('#create-user').button();       
     });
+    
+    function newUserAccount() {
+        document.location.href='/accounts/new/';
+    }
+    
+    
+    
 </script>
+
 
 {% endblock %}
