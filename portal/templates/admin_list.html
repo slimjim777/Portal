@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">Admin</h2>
+
+<div id="accordion">
+  <h3>Users</h3>
+
+  <div>  
+  {% if not rows %}
+    <p>No records found.</p>
+  {% else %}
+    <table class="grid">
+    <tr>
+        <th>Name</th><th>Username</th><th>Role</th><th>Territories</th>
+    {% for r in rows %}
+        <tr>
+            <td><a href="/admin/{{ r.personid }}">{{ r.name }}</a></td>
+            <td>{{ r.username }}</td>
+            <td>{{ r.role }}</td>
+            <td>{{ r.access }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+  {% endif %}
+  </div>
+</div>
+
+<script>
+    $( document ).ready(function() {
+        // Select the page in the radio button
+        $( "#r-admin" )[0].checked = true;
+        $( "#radio" ).buttonset("refresh");
+    });
+</script>
+
+{% endblock %}

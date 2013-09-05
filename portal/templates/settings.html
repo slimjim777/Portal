@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">Settings</h2>
+
+<div id="accordion">
+  <h3>User Account</h3>
+
+  <div>
+  {% if not row %}
+      <p>Dude! Where's the record! Trying logging out and in again.</p>
+  {% else %}
+     <div class="row">
+       <div class="cell-left">
+         <div class="cell-row">
+           <div class="cell">
+                User Details
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Name</div>
+                    <div class="subcell-data">{{ row.name }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Username</div>
+                    <div class="subcell-data">{{ row.username }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Password</div>
+                    <div class="subcell-data"><a href="#">Change Password</a></div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Email</div>
+                    <div class="subcell-data">{{ row.email }}</div>
+               </div>
+           </div>
+         </div>   
+       </div>
+       <div class="cell-right">
+         <div class="cell-row">
+           <div class="cell">
+                Permissions
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Territories</div>
+                    <div class="subcell-data">{{ row.access }}</div>
+               </div>
+           </div>
+         </div>
+       </div>       
+     </div>
+
+  {% endif %}
+  </div>
+</div>
+
+<script>
+    $( document ).ready(function() {
+        // Select the page in the radio button
+        $( "#r-settings" )[0].checked = true;
+        $( "#radio" ).buttonset("refresh");
+    });
+</script>
+
+{% endblock %}
+

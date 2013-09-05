@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block body %}
+
+{% if not row %}
+<h2 class="heading">Person</h2>
+{% else %}
+<h2 class="heading">{{ row.name }}</h2>
+{% endif %}
+
+<div id="accordion">
+  {% if not row %}
+  <h3>Not Found</h3>
+  <p>The more I look, the more that person isn't there</p>
+  {% else %}
+   <h3>Details</h3>
+   
+   <div>
+     <div class="row">
+       <div class="cell-left">
+         <div class="cell-row">
+           <div class="cell">
+                Contact
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Home Phone</div>
+                    <div class="subcell-data">{{ row.home_phone }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Mobile Phone</div>
+                    <div class="subcell-data">{{ row.mobile_phone }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Email</div>
+                    <div class="subcell-data">{{ row.email }}</div>
+               </div>
+           </div>
+         </div>   
+       </div>
+       <div class="cell-right">
+         <div class="cell-row">
+           <div class="cell">
+                Address
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Street</div>
+                    <div class="subcell-data">{{ row.address1 }}<br />{{ row.address2 }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">City</div>
+                    <div class="subcell-data">{{ row.city }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Postcode</div>
+                    <div class="subcell-data">{{ row.postcode }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Country</div>
+                    <div class="subcell-data">{{ row.country }}</div>
+               </div>
+           </div>
+         </div>
+       </div>       
+     </div>
+     
+     <div class="row">
+       <div class="cell-left">
+         <div class="cell-row">
+           <div class="cell">
+                Profile
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Gender</div>
+                    <div class="subcell-data">{{ row.gender }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Life Group</div>
+                    <div class="subcell-data">{{ row.lifegroup }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Marital Status</div>
+                    <div class="subcell-data">{{ row.marital_status }}</div>
+               </div>
+           </div>
+         </div>
+       </div>   
+       <div class="cell-right">
+         <div class="cell-row">
+           <div class="cell">
+                General
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Type</div>
+                    <div class="subcell-data">{{ row.type }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Territory</div>
+                    <div class="subcell-data">{{ row.territory }}</div>
+               </div>
+           </div>
+         </div>
+       </div>        
+     </div>
+      
+   </div>
+  {% endif %}
+</div>
+
+
+
+{% if row and row.territory=='Kidswork' %}
+<br />
+<div id="accordion1">
+   <h3>Kidswork</h3>
+
+   <div>
+     <div class="row">
+       <div class="cell-left">
+         <div class="cell-row">
+           <div class="cell">
+                Details
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Kids Group</div>
+                    <div class="subcell-data">{{ row.kids_group }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Kids Team</div>
+                    <div class="subcell-data">{{ row.kids_team }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">School Year</div>
+                    <div class="subcell-data">{{ row.school_year }}</div>
+               </div>
+           </div>
+         </div>   
+       </div>
+       <div class="cell-right">
+         <div class="cell-row">
+           <div class="cell">
+                Personal
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Date of Birth</div>
+                    <div class="subcell-data">{{ row.dob }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Medical Info</div>
+                    <div class="subcell-data">{{ row.medical_info }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Medical Notes</div>
+                    <div class="subcell-data">{{ row.medical_notes }}</div>
+               </div>
+           </div>
+         </div>
+       </div>       
+     </div>
+
+     <div class="row">
+       <div class="cell-left">
+         <div class="cell-row">
+           <div class="cell">
+                Registration
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Tag Number</div>
+                    <div class="subcell-data">{{ row.tagnumber }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Family Tag</div>
+                    <div class="subcell-data">{{ row.family_tag }}</div>
+               </div>
+           </div>
+         </div>   
+       </div>
+       <div class="cell-right">
+       </div>       
+     </div>
+
+
+
+</div>
+{% endif %}
+
+
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">Admin</h2>
+
+<div id="accordion">
+  <h3>User Account</h3>
+
+  {% if not row %}
+  <div>
+      <p>Dude! Where's the record! Trying logging out and in again.</p>
+  </div>
+  {% else %}
+  <div>
+     <div class="row">
+       <div class="cell-left">
+         <div class="cell-row">
+           <div class="cell">
+                User Details
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Name</div>
+                    <div class="subcell-data">{{ row.name }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Username</div>
+                    <div class="subcell-data">{{ row.username }}</div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Password</div>
+                    <div class="subcell-data"><a href="#">Change Password</a></div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Email</div>
+                    <div class="subcell-data">{{ row.email }}</div>
+               </div>
+           </div>
+         </div>   
+       </div>
+       <div class="cell-right">
+         <div class="cell-row">
+           <div class="cell">
+                Permissions
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Territories</div>
+                    <div class="subcell-data">{{ row.access }}</div>
+               </div>
+           </div>
+         </div>
+       </div>       
+     </div>
+  </div>
+     
+  {% endif %}
+</div>
+
+{% if row %}
+<br />
+<div id="accordion1">
+  <h3>Limit Access to Groups</h3>
+  <div>
+     <div class="row">
+       <div class="cell-left">
+         <div class="cell-row">
+            <div class="cell">
+                Available Groups
+            </div>
+            <div class="cell-data" id="gr-available">
+{% for g in groups %}
+<button id="g-{{ g.groupsid }}" onclick="select(this)">{{ g.name  }}</button>
+{% endfor %}            
+            </div>
+         </div> 
+       </div>
+       <div class="cell-right">
+         <div class="cell-row">
+            <div class="cell">
+                See Only Groups
+            </div>
+            <div class="cell-data" id="gr-selected">
+{% for g in ug %}
+<button id="g-{{ g.groupsid }}" onclick="deselect(this)">{{ g.name  }}</button>
+{% endfor %}            
+            </div>
+         </div>
+       </div>
+     </div>
+
+  
+  </div>
+</div>
+{% endif %}
+
+<script>
+    function select($el) {
+        $($el).appendTo('#gr-selected');
+        $($el).attr('onclick', 'deselect(this)');
+    }
+    function deselect($el) {
+        $($el).appendTo('#gr-available');
+        $($el).attr('onclick', 'select(this)');
+    }
+</script>
+
+{% endblock %}
+

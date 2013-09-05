@@ -1,3 +1,9 @@
+.page {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 label, input {
   display: block;
   
@@ -5,4 +11,193 @@ label, input {
 
 .ui-state-error {
     margin-top: -1em;
+}
+
+.banner
+{
+    font-family: 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-weight: bold;
+    background-color: rgb(59, 170, 227);
+    /*background-image:url(/static/css/cupertino/images/ui-bg_glass_50_3baae3_1x400.png);*/
+    padding: 10px 20px;
+    color: white;
+}
+
+.heading {
+    font-family: 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: #666;
+}
+
+nav#main .searchform {
+	background: none;
+	-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.4), rgba(255,255,255,0.1) 0 1px 0;
+	box-shadow: inset 0 0 5px rgba(0,0,0, 0.4), rgba(255,255,255,0.1) 0 1px 0;
+	border-radius: 4px;
+	border: 1px solid rgba(0,0,0,0.25);
+	color: #fff;
+	text-shadow: rgba(0, 0, 0, 0.796875) 0px -1px 0px, rgba(255, 255, 255, 0.296875) 0px 0px 10px;
+}
+
+nav#main .searchform {
+	float: right;
+	width: 28%;
+	margin-top: 12px;
+	padding: 0;
+	border-radius: 20px;
+	position: relative;
+}
+
+nav#main .searchform input {
+	text-decoration: none;
+	font: 12px/12px "Lucida Grande", Lucida, Verdana, sans-serif;
+	padding: 5px 10px;
+	margin: 0;
+	background-color: transparent;
+	border-style: none;
+	color: #fff;
+	line-height: 1.3;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.76);
+	width: 85%;
+	box-shadow: none;
+}
+
+nav#main .searchform input:focus {
+	outline: none;
+}
+
+
+.no-boxshadow nav#main .searchform {
+	border: 1px solid #333;
+}
+
+.no-boxshadow nav#main .searchform input {
+	background: #fff;
+	color: #333;
+}
+
+/*
+ * 1. :-moz-placeholder has been deprecated in favor of ::-moz-placeholder.
+ * 2. Using :placeholder for completeness.
+ */
+nav#main .searchform input::-webkit-input-placeholder {
+	color: #fff;
+}
+nav#main .searchform input:-moz-placeholder { /* 1 */
+	color: #fff;
+}
+nav#main .searchform input::-moz-placeholder {
+	color: #fff;
+}
+nav#main .searchform input:-ms-input-placeholder {
+	color: #fff;
+}
+nav#main .searchform input:placeholder { /* 2 */
+	color: #fff;
+}
+
+.visuallyhidden {
+	border: 0;
+	clip: rect(0 0 0 0);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+}
+
+nav#main .searchform .icon-search {
+	position: absolute;
+	right: 10px;
+	top: 3px;
+	bottom: 3px;
+	border-width: 0;
+	border-left: 1px solid rgba(7, 7, 7, 0.65);
+	background-color: transparent;
+	padding: 0 7 0 7px;
+	opacity: 0.75;
+	color: #fff;
+	background-image: url(/static/css/cupertino/images/ui-icons_ffffff_256x240.png);
+	background-position: -160px -112px;
+}
+
+.icon-search:before {
+    content: "";
+}
+
+.grid {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.grid th, .grid td {
+    padding: 5px;
+}
+
+.grid th {
+    border: 1px solid #ccc;
+    background-color: #ddd;
+}
+
+.grid td {
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    background-color: #fff;
+}
+
+.row {
+    display: table-row;
+}
+
+.cell-left, .cell-right {
+    display: table-cell;
+    width: 600px;
+}
+
+.cell-row {
+    display: table-row;
+}
+
+.cell {
+    display: table-cell;
+    color: rgb(59, 170, 230);
+    text-align: left;
+    width: 94px;
+    font-size: 16px;
+    position: relative;
+    padding: 15px;
+}
+
+.cell-data {
+    display: table-row;
+    width: 100%;
+    margin: 15px;
+    box-sizing: border-box;
+    font-size: 13px;
+    position: relative;
+}
+
+.subcell {
+    display: table-row;
+}
+
+.subcell-label {
+    display: table-cell;
+    color: #888;
+    padding-bottom: 2px;
+    width: 100px;
+    padding-right: 20px;
+}
+
+.subcell-data {
+    display: table-cell;
+    padding-bottom: 4px;
+}
+
+.menu-top input {
+    display: inline;
+}
+
+.ui-widget {
+    font-size: 1em;
 }

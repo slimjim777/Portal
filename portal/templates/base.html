@@ -3,32 +3,72 @@
     <title>Lifechurch Portal</title>
     <script src="/static/js/jquery-1.9.1.js"></script>
     <script src="/static/js/jquery-ui-1.10.3.custom.js"></script>
-    <link href="/static/css/pepper-grinder/jquery-ui-1.10.3.custom.css" rel="stylesheet">
+    <script src="/static/js/app.js"></script>
+    <link href="/static/css/cupertino/jquery-ui-1.10.3.custom.css" rel="stylesheet">
     <link href="/static/css/portal.css" rel="stylesheet">
 
     <script>
       $(function() {
         $( "#accordion" ).accordion();
-        $( "#tabs" ).tabs();
+        $( "#accordion1" ).accordion();
+        $( "#radio" ).buttonset();
+        $( "#r-people" ).click( function() {
+            document.location.href = '/people/';          
+        });
+        $( "#r-settings" ).click( function() {
+            document.location.href = '/settings/';
+        });        
+        $( "#r-admin" ).click( function() {
+            document.location.href = '/admin/';
+        }); 
+        $( "#r-logout" ).click( function() {
+            document.location.href = '/logout/';
+        });
       });
     </script>
 
 </head>
 <body>
-<h1 align="center">
-    Lifechurch Portal Login
-</h1>
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
-    {% for message in messages %}
-      {{ message }}<br />
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+    <nav id="main" class="banner">
+        <h1>Lifechurch Portal</h1>
+        
+        {% if session.username %}
+        <form method="post" action="/people/" class="searchform">
+            <button type="submit" class="icon-search">
+            </button>
+            <label>
+                <input id="search" type="text" name="search" value placeholder="Search" size="100" maxlength="100" />
+            </label>
+        </form>
+                
+        <form>
+          <div id="radio" class="menu-top">
+            <input type="radio" id="r-people" name="radio" /><label for="r-people">People</label>
+            <input type="radio" id="r-settings" name="radio" /><label for="r-settings">Account</label>
+            {% if session.role=='Admin' %}
+            <input type="radio" id="r-admin" name="radio" /><label for="r-admin">Admin</label>
+            {% endif %}
+            <input type="radio" id="r-logout" name="radio" /><label for="r-logout">Logout</label>
+          </div>
+        </form>           
+        {% endif %}
 
-{% block body %}{% endblock %}
+    </nav>
+
+<div class="page">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
+        {% for message in messages %}
+          {{ message }}<br />
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% block body %}{% endblock %}
+</div>
+
 </body>
 </html>

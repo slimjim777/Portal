@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from portal.model.sagecrm import Connection
+from flask import session
 from portal import app
 import psycopg2
 import psycopg2.extras
@@ -37,18 +38,54 @@ class User(object):
         Verify the user login details.
         """
         self.cursor.execute("SELECT * FROM Visitor WHERE username=%s AND password=%s", (username, self._hashed(password)))
-        row = self.cursor.fetchone()
-        #self.sqlconn.close()
-        
-        if row:
-            return {
-                    'personid': row[0],
-                    'username': row[2],
-                    'name': row[3],
-                    'access': row[4]
-                    }
-        else:
-            return None
+        row = self.cursor.fetchone()      
+        return row;
+            
+    def details(self):
+        sql = """
+            select * from visitor v
+            inner join person p on p.personid=v.personid
+            where username=%s
+        """
+        self.cursor.execute(sql, (session['username'],))
+        return self.cursor.fetchone()
+
+    def getall(self):
+        # Get the users
+        sql = """
+            select * from visitor v
+            inner join person p on p.personid=v.personid
+        """
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+    
+    def groups(self, personid):
+        # Get the user groups
+        sql = """
+            select g.* from groups g
+            inner join user_group ug on ug.groupsid=g.groupsid
+            inner join visitor u on ug.personid=u.personid
+            where u.personid = %s
+        """        
+        self.cursor.execute(sql, (personid,))
+        return self.cursor.fetchall()
+
+    def groups_unselected(self, personid):
+        sql = """
+            select * from groups
+            where groupsid not in (select groupsid from user_group where personid = %s)
+        """
+        self.cursor.execute(sql, (personid,))
+        return self.cursor.fetchall()
+
+    def groupsall(self):
+        # Get the user groups
+        sql = """
+            select * from groups
+        """        
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+
 
 
 class SageCRMWrapper(object):
@@ -315,6 +352,29 @@ class Person(SageCRMWrapper):
         return record
 
 
+    def find(self, search):
+        """
+        Search for people by name.
+        """
+        ids = tuple(x for x in session['access'])
+        sql = "select * from person where name ilike '%%'||%s||'%%' and territory in %s"
+        self.cursor.execute(sql, (search,ids,))
+        
+        rows = self.cursor.fetchall()
+        if not rows:
+            return []
+            
+        return rows
+
+
+    def get(self, personid):
+        """
+        Get a person by their ID.
+        """
+        self.cursor.execute("select * from person where personid=%s", (personid,))
+        return self.cursor.fetchone()
+
+
     def _register(self, family_number, people, event_id, stage, status):
         print family_number, people, event_id, stage, status
     
@@ -339,8 +399,6 @@ class Person(SageCRMWrapper):
         return {"result":"success"}
 
 
-  
-    
     def _family(self, family_number):
         """
         Get family details from the local database.
@@ -498,6 +556,7 @@ class Person(SageCRMWrapper):
     def _parents(self, company_id):
         family_list = self.connection.client.service.query("comp_companyid=%s" % company_id, "Company")
         return family_list.records[0]
+
 
 
 
