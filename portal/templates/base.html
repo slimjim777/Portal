@@ -19,7 +19,7 @@
             document.location.href = '/settings/';
         });        
         $( "#r-admin" ).click( function() {
-            document.location.href = '/admin/';
+            document.location.href = '/accounts/';
         }); 
         $( "#r-logout" ).click( function() {
             document.location.href = '/logout/';
@@ -45,9 +45,10 @@
         <form>
           <div id="radio" class="menu-top">
             <input type="radio" id="r-people" name="radio" /><label for="r-people">People</label>
-            <input type="radio" id="r-settings" name="radio" /><label for="r-settings">Account</label>
             {% if session.role=='Admin' %}
-            <input type="radio" id="r-admin" name="radio" /><label for="r-admin">Admin</label>
+            <input type="radio" id="r-admin" name="radio" /><label for="r-admin">User Accounts</label>
+            {% else %}
+            <input type="radio" id="r-settings" name="radio" /><label for="r-settings">My Account</label>
             {% endif %}
             <input type="radio" id="r-logout" name="radio" /><label for="r-logout">Logout</label>
           </div>

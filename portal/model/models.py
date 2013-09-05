@@ -24,6 +24,7 @@ class Database(object):
 
 
 class User(object):
+    TERRITORIES = ['Active','Kidswork']
 
     def __init__(self):
         db = Database()
@@ -41,14 +42,24 @@ class User(object):
         row = self.cursor.fetchone()      
         return row;
             
-    def details(self):
+    def details(self, username=None, personid=None):
         sql = """
             select * from visitor v
             inner join person p on p.personid=v.personid
-            where username=%s
+            where 
         """
-        self.cursor.execute(sql, (session['username'],))
-        return self.cursor.fetchone()
+        if username:
+            sql += 'username=%s'
+            self.cursor.execute(sql, (username,))
+        else:
+            sql += 'v.personid=%s'
+            self.cursor.execute(sql, (personid,))
+            
+        user = self.cursor.fetchone()
+        if user:
+            user = dict(user)
+            user['territories'] = self.territories(user['access'])
+        return user
 
     def getall(self):
         # Get the users
@@ -86,7 +97,42 @@ class User(object):
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
+    def territories(self, access):
+        """
+        Convert the list of territories into dictionaries that indicate access.
+        """
+        perms = []
+        territories = access.split(',')
+        for t in self.TERRITORIES:
+            if t in territories:
+                perms.append({'name':t, 'access':True})
+            else:
+                perms.append({'name':t, 'access':False})     
+        return perms
 
+    def territory_update(self, personid, action, territory):
+        """
+        Update the territories for a user.
+        """
+        self.cursor.execute("select access from visitor where personid=%s", (personid,))
+        row = self.cursor.fetchone()
+        if not row:
+            return {'response':'Failed', 'error':'Cannot find the user'}
+        
+        app.logger.debug(row)
+        territories = row['access'].split(',')
+        if action=='remove' and territory in territories:
+            territories.remove(territory)
+        elif action=='add' and territory not in territories:
+            territories.append(territory)
+            territories.sort()
+            
+        # Save the update territory list
+        sql = 'update visitor set access=%s where personid=%s'
+        self.cursor.execute(sql, (','.join(territories),personid))
+        self.sqlconn.commit()
+        return {'response':'Success'}
+        
 
 class SageCRMWrapper(object):
     def __init__(self):
@@ -556,8 +602,6 @@ class Person(SageCRMWrapper):
     def _parents(self, company_id):
         family_list = self.connection.client.service.query("comp_companyid=%s" % company_id, "Company")
         return family_list.records[0]
-
-
 
 
 class CRMPerson(SageCRMWrapper):

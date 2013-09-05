@@ -72,6 +72,29 @@ def person():
     return jsonify(result)
 
 
+@app.route("/rest/v1.0/territory", methods=['POST'])
+def territory():
+    """
+    Add/remove territory from individual.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+    if ('personid' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+    if ('action' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The 'action' must be supplied." })    
+    if ('territory' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The 'territory' must be supplied." })    
+
+    user = User()
+    response = user.territory_update(request.json['personid'], request.json['action'], request.json['territory'])
+    return jsonify(response)
+
+
 @app.route("/rest/v1.0/sign-in", methods=['POST'])
 def sign_in():
     """
@@ -144,5 +167,7 @@ def _register(action):
     else:
         result = {'error': 'Action is not available: %s' % action}
     return jsonify(result)
+
+
 
 

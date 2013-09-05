@@ -64,12 +64,12 @@ def settings():
         return redirect(url_for('index'))
 
     user = User()
-    u = user.details()
+    u = user.details(username=session['username'])
     return render_template('settings.html', row=u)
 
 
-@app.route("/admin/", methods=['GET'])
-def admin_list():
+@app.route("/accounts/", methods=['GET'])
+def accounts_list():
     if not is_authenticated():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
@@ -79,14 +79,14 @@ def admin_list():
     return render_template('admin_list.html', rows=u)
 
 
-@app.route("/admin/<int:person_id>", methods=['GET'])
-def admin(person_id):
+@app.route("/accounts/<int:person_id>", methods=['GET'])
+def accounts(person_id):
     if not is_authenticated():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
 
     user = User()
-    u = user.details()
+    u = user.details(personid=person_id)
     g = user.groups(person_id)
     groups = user.groups_unselected(person_id)
     return render_template('admin.html', row=u, groups=groups, ug=g)

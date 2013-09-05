@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block body %}
 
-<h2 class="heading">Admin</h2>
+<h2 class="heading">Accounts</h2>
+
+<div id="messages"></div>
 
 <div id="accordion">
   <h3>User Account</h3>
@@ -52,62 +54,64 @@
            <div class="cell-data">
                <div class="subcell">
                     <div class="subcell-label">Territories</div>
-                    <div class="subcell-data">{{ row.access }}</div>
+                    <div class="subcell-data">
+                        {% for t in row.territories %}
+                            {% if t.access %}
+                        <button class="ui-corner-all ui-state-active" onclick="toggleTerritory(this)">{{ t.name }}</button>
+                            {% else %}
+                        <button onclick="toggleTerritory(this)">{{ t.name }}</button>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                </div>
            </div>
          </div>
        </div>       
      </div>
   </div>
-     
+
   {% endif %}
 </div>
 
-{% if row %}
-<br />
-<div id="accordion1">
-  <h3>Limit Access to Groups</h3>
-  <div>
-     <div class="row">
-       <div class="cell-left">
-         <div class="cell-row">
-            <div class="cell">
-                Available Groups
-            </div>
-            <div class="cell-data" id="gr-available">
-{% for g in groups %}
-<button id="g-{{ g.groupsid }}" onclick="select(this)">{{ g.name  }}</button>
-{% endfor %}            
-            </div>
-         </div> 
-       </div>
-       <div class="cell-right">
-         <div class="cell-row">
-            <div class="cell">
-                See Only Groups
-            </div>
-            <div class="cell-data" id="gr-selected">
-{% for g in ug %}
-<button id="g-{{ g.groupsid }}" onclick="deselect(this)">{{ g.name  }}</button>
-{% endfor %}            
-            </div>
-         </div>
-       </div>
-     </div>
-
-  
-  </div>
-</div>
-{% endif %}
-
 <script>
-    function select($el) {
-        $($el).appendTo('#gr-selected');
-        $($el).attr('onclick', 'deselect(this)');
-    }
-    function deselect($el) {
-        $($el).appendTo('#gr-available');
-        $($el).attr('onclick', 'select(this)');
+    function toggleTerritory($el) {
+        var postdata = {
+            personid:{{ row.personid }},
+            action: '',
+            territory:$($el).text()
+        };
+        
+        var classNameUndo = 'ui-corner-all ui-state-active';
+        
+        if (!$($el).attr('class')) {
+            // Enable territory
+            classNameUndo = '';
+            $($el).attr('class', 'ui-corner-all ui-state-active');
+            postdata.action = 'add';
+        } else {
+            // Disable territory
+            classNameUndo = 'ui-corner-all ui-state-active';
+            $($el).attr('class', '');
+            postdata.action = 'remove';
+        }
+
+        var request = $.ajax({
+          type: 'POST',
+          url: '/rest/v1.0/territory',
+          data: JSON.stringify(postdata),
+          contentType:"application/json",
+          dataType: "json",
+          success: function(data) {
+            if(data.response=='Failed') {
+                console.log(data.error);
+                var $message = $('#messages');
+                $message.text(data.error);
+                $message.attr('class', 'ui-state-error ui-corner-all');
+                $message.show().fadeOut(2000);
+                $($el).attr('class', classNameUndo);
+            }
+          }
+        });  
     }
 </script>
 

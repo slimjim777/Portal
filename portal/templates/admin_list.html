@@ -4,7 +4,7 @@
 <h2 class="heading">Admin</h2>
 
 <div id="accordion">
-  <h3>Users</h3>
+  <h3>User Accounts</h3>
 
   <div>  
   {% if not rows %}
@@ -15,7 +15,7 @@
         <th>Name</th><th>Username</th><th>Role</th><th>Territories</th>
     {% for r in rows %}
         <tr>
-            <td><a href="/admin/{{ r.personid }}">{{ r.name }}</a></td>
+            <td><a href="/accounts/{{ r.personid }}">{{ r.name }}</a></td>
             <td>{{ r.username }}</td>
             <td>{{ r.role }}</td>
             <td>{{ r.access }}</td>
