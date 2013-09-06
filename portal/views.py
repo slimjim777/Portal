@@ -2,7 +2,7 @@ from flask import render_template
 from flask import request, redirect, url_for, flash, session
 
 from portal.form.login import LoginForm
-from portal.form.person import FindPersonForm
+from portal.form.person import UserAccountForm
 from portal import app
 from portal.model.models import User
 from portal.model.models import Person
@@ -98,12 +98,39 @@ def accounts(person_id):
 
 
 @app.route("/accounts/new/", methods=['GET'])
-def accounts_new():
+@app.route("/accounts/new/<int:person_id>", methods=['GET','POST'])
+def accounts_new(person_id=None):
     if not is_authenticated():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
-
-    return render_template('admin_new.html', env=env,) 
+    
+    p = None 
+    form = None
+    error = None
+    if request.method == "GET":
+        if person_id:
+            person = Person()
+            p = person.get(person_id)
+            names = p['name'].split(' ')
+            p['username'] = (names[0][0] + names[-1]).lower()
+    elif request.method == "POST":
+        form = UserAccountForm(request.form)
+        if form.validate():
+            # Create the user account
+            user = User()
+            error = user.new({
+                'personid': person_id,
+                'username': request.form.get('username')
+            })
+            if error is None:
+                return redirect('/accounts/%d' % person_id)
+        if not form.validate() or error:
+            p = {
+                'personid':person_id,
+                'username':request.form.get('username',''),
+            }
+        
+    return render_template('admin_new.html', env=env, row=p, form=form, error=error) 
 
 
 def is_authenticated():

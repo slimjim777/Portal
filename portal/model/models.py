@@ -132,7 +132,26 @@ class User(object):
         self.cursor.execute(sql, (','.join(territories),personid))
         self.sqlconn.commit()
         return {'response':'Success'}
+
+    def new(self, rec):
+        """
+        Create the user account.
+        """
+        sql = 'insert into visitor values (%s,%s,%s,%s,%s,%s)'
         
+        if rec.get('password'):
+            pwd = self._hashed(rec['password'])
+        else:
+            pwd = None
+        try:
+            self.cursor.execute(sql, (rec['personid'], rec['username'], pwd,
+                                        rec.get('name'),rec.get('access','Active'),
+                                        rec.get('role','Standard'),))
+            self.sqlconn.commit()
+        except Exception as e:
+            return str(e)
+        
+        return None
 
 class SageCRMWrapper(object):
     def __init__(self):
@@ -418,7 +437,11 @@ class Person(SageCRMWrapper):
         Get a person by their ID.
         """
         self.cursor.execute("select * from person where personid=%s", (personid,))
-        return self.cursor.fetchone()
+        row = self.cursor.fetchone()
+        if row:
+            return dict(row)
+        else:
+            return row
 
 
     def _register(self, family_number, people, event_id, stage, status):

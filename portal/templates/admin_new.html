@@ -13,7 +13,7 @@
         <!--div class="cell-left"-->
             <div class="cell-row">
                  <label for="name">Name:</label>
-                 <input id="name" size="60" class="ui-corner-all" />
+                 <input id="name" size="60" class="ui-corner-all" placeholder="Find the Person" onkeyup="keyupEnter(event)" />
                  <button id="find" onclick="findPerson()">Find</button>
             </div>
         <!--/div>
@@ -21,28 +21,94 @@
         </div-->
      </div>
   <div id="people">
-  </div>     
+  </div>
      
   </div>
 </div>
 
-<div id="accordion-1">
-  <!--h3>People</h3-->
+{% if row %}
+<div id="accordion1">
+  <h3>Create New User Account</h3>
 
+  <div>
+    <div class="row">
+        {% if error %}
+            <span class="ui-state-error">{{ error }}</span>
+        {% endif %}
+        <div class="cell-left">
+            <form method="post" action="/accounts/new/{{ row.personid }}">
+                <div class="cell-data">
+                    <div class="subcell">
+                         <div class="subcell-label">Person ID</div>
+                         <div class="subcell-data">
+                            <input id="personid" name="personid" placeholder="Person ID" value="{{ row.personid }}" readonly="readonly" />
+                            {% if form and form.personid.errors %}
+                                <span class="ui-state-error">{{ form.personid.errors }}</span>
+                            {% endif %}                            
+                        </div>
+                    </div>
+                </div>
+                <div class="cell-data">
+                    <div class="subcell">
+                         <div class="subcell-label">Name</div>
+                         <div class="subcell-data"><input id="person_name" name="name" placeholder="Name" value="{{ row.name }}" /></div>
+                    </div>
+                </div>
+                <div class="cell-data">
+                    <div class="subcell">
+                         <div class="subcell-label">Email</div>
+                         <div class="subcell-data">
+                         {% if row.email %}
+                            {{ row.email }}
+                         {% else %}
+                            <span class="ui-state-error">Cannot create a User when the Person does not have an Email address</span>
+                         {% endif %}
+                         </div>
+                    </div>
+                </div>
+                {% if row.email %}
+                <div class="cell-data">
+                    <div class="subcell">
+                         <div class="subcell-label">Username</div>
+                         <div class="subcell-data">
+                            <input id="username" name="username" placeholder="Username" value="{{ row.username }}" />
+                            {% if form and form.username.errors %}
+                                <span class="ui-state-error">{{ form.username.errors[0] }}</span>
+                            {% endif %}
+                         </div>
+                    </div>
+                </div>
+                <div class="cell-data">
+                    <div class="subcell">
+                        <div class="subcell-label"></div>
+                        <div class="subcell-data">
+                            <button id="save">Create User</button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+  </div>
 
 </div>
+{% endif %}
 
 <script>
-    //$( document ).ready(function() {
-        //$('#find').button();
-    //});
+    $( document ).ready(function() {
+        $('#save').button();
+    });
 
     function findPerson() {
         var postdata = {
             name: $('#name').val()
         };
         
+        $('#accordion1').fadeOut();
         var p = $('#people');
+        p.empty();
+        $( "#progressbar" ).show();
     
         var request = $.ajax({
           type: 'POST',
@@ -55,24 +121,23 @@
                             '<table class="grid"><tr><th>Name</th><th>Email</th></tr>';
               for (dd in data.result) {
                   var d = data.result[dd];
-                  table += '<tr><td><a id="b-' + d.personid +'" href="" onclick="selectPerson(event,'+ d.personid +')">' + d.name + '</a></td>' +
+                  table += '<tr><td><a id="b-' + d.personid +'" href="/accounts/new/'+ d.personid +'">' + d.name + '</a></td>' +
                           '<td>' + d.email + '</td></tr>';                  
               }
               table += '</table>';
               p.append(table);
               $('#accordion').accordion('refresh');
-              
+              $( "#progressbar" ).hide();
           }
         });
     }
     
-    function selectPerson(ev, personid) {
-        ev.preventDefault();
-        console.log(personid);
-
-
+    function keyupEnter(ev) {
+        if (ev.keyCode==13) {
+            findPerson();
+        }
     }
-
+    
 </script>
 
 {% endblock %}

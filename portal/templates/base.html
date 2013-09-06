@@ -13,6 +13,10 @@
         $( "#accordion" ).accordion();
         $( "#accordion1" ).accordion();
         $( "#radio" ).buttonset();
+        $( "#progressbar" ).progressbar({
+            value: false
+        });
+        $( "#progressbar" ).hide();
         $( "#r-people" ).click( function() {
             document.location.href = '/people/';          
         });
@@ -69,6 +73,7 @@
       {% endif %}
     {% endwith %}
 
+    <div id="progressbar"></div>
     {% block body %}{% endblock %}
 </div>
 

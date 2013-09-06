@@ -201,3 +201,7 @@ nav#main .searchform .icon-search {
 .ui-widget {
     font-size: 1em;
 }
+
+#radio .ui-button-text {
+    font-size: 14px;
+}
