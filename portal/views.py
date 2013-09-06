@@ -6,7 +6,12 @@ from portal.form.person import FindPersonForm
 from portal import app
 from portal.model.models import User
 from portal.model.models import Person
+import os
 
+env = {
+    'TINFOIL_NAME':os.environ['TINFOIL_NAME'],
+    'TINFOIL_CONTENT':os.environ['TINFOIL_CONTENT'],
+}
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -23,7 +28,7 @@ def index():
             return redirect(url_for('people'))
         else:
             form.username.errors.append('Username or password is incorrect.')
-    return render_template('login.html', form=form)
+    return render_template('login.html', env=env, form=form)
 
 
 @app.route("/logout/", methods=['GET'])
@@ -42,7 +47,7 @@ def people():
     if request.method == 'POST':
         person = Person()
         rows = person.find(request.form.get('search',''))
-    return render_template('people.html', rows=rows)
+    return render_template('people.html', env=env, rows=rows)
 
 
 @app.route("/people/<int:person_id>", methods=['GET'])
@@ -54,7 +59,7 @@ def person_get(person_id):
     person = Person()
     p = person.get(person_id)
     
-    return render_template('person.html', row=p)
+    return render_template('person.html', env=env, row=p)
 
 
 @app.route("/settings/", methods=['GET'])
@@ -65,7 +70,7 @@ def settings():
 
     user = User()
     u = user.details(username=session['username'])
-    return render_template('settings.html', row=u)
+    return render_template('settings.html', env=env, row=u)
 
 
 @app.route("/accounts/", methods=['GET'])
@@ -76,7 +81,7 @@ def accounts_list():
 
     user = User()
     u = user.getall()
-    return render_template('admin_list.html', rows=u)
+    return render_template('admin_list.html', env=env, rows=u)
 
 
 @app.route("/accounts/<int:person_id>", methods=['GET'])
@@ -89,7 +94,7 @@ def accounts(person_id):
     u = user.details(personid=person_id)
     g = user.groups(person_id)
     groups = user.groups_unselected(person_id)
-    return render_template('admin.html', row=u, groups=groups, ug=g)
+    return render_template('admin.html', env=env, row=u, groups=groups, ug=g)
 
 
 @app.route("/accounts/new/", methods=['GET'])
@@ -98,7 +103,7 @@ def accounts_new():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
 
-    return render_template('admin_new.html') 
+    return render_template('admin_new.html', env=env,) 
 
 
 def is_authenticated():
