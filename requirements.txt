@@ -10,6 +10,7 @@ greenlet==0.4.1
 gunicorn==17.5
 hashlib==20081119
 itsdangerous==0.23
+newrelic==2.0.0.1
 psycopg2==2.5.1
 pycparser==2.10
 suds==0.4
