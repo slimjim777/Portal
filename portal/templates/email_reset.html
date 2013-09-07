@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    font-family: Arial,Helvetica,'Sans Serif';
+  }
+  div.button {
+    margin: 0 auto;
+    text-align:center;
+  }
+  h1 {
+    padding:10px;
+    background-color: #5D92DD;
+    color: #fff;
+  }
+  a.button
+  {
+    padding: 20px;
+    text-decoration: None;
+    background-color: #5D92DD;
+    border: 2px solid #eee;
+    border-radius: 5px;
+    color: #fff;
+  }
+  .note {
+    padding: 5px;
+    background-color: #eee;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+    <h1>Lifechurch Portal Password Reset</h1>
+    <p>To reset or choose a password to the Lifechurch Portal, please click on the link below. The link will expire in 24 hours, but you can always initiate another reset at the website.</p>
+    <br /><br />
+    <div class="button">
+        <a href="http://portal.lifechurch.eu/reset/{{ reset_code }}/{{ personid }}" class="button">Reset Password</a>
+    </div>
+    <br />
+    <p class="note">Note: you will need to know your portal Username. You should have received this in 
+        the welcome email. Please contact the office if you cannot remember the Username.</p>
+    
+</body>
+</html>

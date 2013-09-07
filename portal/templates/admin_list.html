@@ -14,13 +14,14 @@
   {% else %}
     <table class="grid">
     <tr>
-        <th>Name</th><th>Username</th><th>Role</th><th>Territories</th>
+        <th>Name</th><th>Username</th><th>Role</th><th>Territories</th><th>Last Login</th>
     {% for r in rows %}
         <tr>
             <td><a href="/accounts/{{ r.personid }}">{{ r.name }}</a></td>
             <td>{{ r.username }}</td>
             <td>{{ r.role }}</td>
             <td>{{ r.access }}</td>
+            <td>{{ r.last_login }}</td>
         </tr>
     {% endfor %}
     </table>

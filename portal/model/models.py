@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from portal.model.sagecrm import Connection
 from flask import session
+from flask import render_template
 from portal import app
 import psycopg2
 import psycopg2.extras
-import os, datetime
+import os, datetime, binascii
 import urlparse
-import hashlib
+import hashlib, smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 class Database(object):
 
@@ -38,8 +41,15 @@ class User(object):
         """
         Verify the user login details.
         """
-        self.cursor.execute("SELECT * FROM Visitor WHERE username=%s AND password=%s", (username, self._hashed(password)))
-        row = self.cursor.fetchone()      
+        self.cursor.execute("SELECT * FROM Visitor WHERE username=%s AND password=%s", (username.lower(), self._hashed(password)))
+        row = self.cursor.fetchone()
+        
+        if row:
+            # Update the last login time and remove password reset requests
+            sql = 'update visitor set reset=null, reset_expiry=null, last_login=%s where personid=%s'
+            self.cursor.execute(sql, (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),row['personid'],))
+            self.sqlconn.commit()
+        
         return row;
             
     def details(self, username=None, personid=None):
@@ -144,14 +154,89 @@ class User(object):
         else:
             pwd = None
         try:
-            self.cursor.execute(sql, (rec['personid'], rec['username'], pwd,
+            self.cursor.execute(sql, (rec['personid'], rec['username'].lower(), pwd,
                                         rec.get('name'),rec.get('access','Active'),
                                         rec.get('role','Standard'),))
             self.sqlconn.commit()
         except Exception as e:
             return str(e)
+            
+        self.reset_password(rec['personid'])
+
         
         return None
+        
+    def reset_password(self, personid):
+        """
+        Generate a reset code and expiry date on the User Account.
+        """
+        # Get the user's email
+        self.cursor.execute('select * from person where personid=%s', (personid,))
+        p = self.cursor.fetchone()
+        if not p:
+            return False
+        
+        reset = binascii.b2a_hex(os.urandom(24))
+        expiry = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+        sql = 'update visitor set reset=%s, reset_expiry=%s where personid=%s'
+        self.cursor.execute(sql, (reset,expiry,personid,))
+        self.sqlconn.commit()
+        
+        self.reset_send_email(personid, p['email'], reset)
+        return True
+        
+    def save_password(self, personid, username, password):
+        """
+        Check that the entered username is correct and update the password.
+        """
+        sql = 'select * from visitor where personid=%s and username=%s'
+        self.cursor.execute(sql, (personid, username.lower(),))
+        row = self.cursor.fetchone()
+        if not row:
+            return {'result': False, 'message':'The username is invalid'}
+        
+        # Entered username is correct, update the password
+        sql = 'update visitor set password=%s where personid=%s'
+        self.cursor.execute(sql, (self._hashed(password),personid,))
+        self.sqlconn.commit()
+        
+        return {'result': True}
+        
+    def reset_validate(self, personid, reset_code):
+        """
+        Check that the reset code is valid.
+        """
+        sql = 'select * from visitor where personid=%s and reset=%s'
+        self.cursor.execute(sql, (personid,reset_code,))
+        if self.cursor.fetchone():
+            return True
+        else:
+            return False
+        
+    def reset_send_email(self, personid, email, reset_code):
+        body_text = render_template('email_reset.txt', reset_code=reset_code, personid=personid)
+        body_html = render_template('email_reset.html', reset_code=reset_code, personid=personid)
+
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = 'Password Reset for Lifechurch Portal'
+        msg['From'] = os.environ['EMAIL_FROM']
+        msg['To'] = email
+        msg.attach(MIMEText(body_text, 'plain'))
+        msg.attach(MIMEText(body_html, 'html'))
+    
+        self.send_email([email], msg)    
+    
+    def send_email(self, to_list, mimetext):
+        server = smtplib.SMTP(os.environ['SMTP_SERVER'] + ':' + os.environ['SMTP_PORT'])
+        if os.environ['SMTP_TLS']=='True':
+            server.starttls()
+        server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
+        server.sendmail(os.environ['EMAIL_FROM'], to_list, mimetext.as_string())
+        server.quit()
+        
+        
+        
+            
 
 class SageCRMWrapper(object):
     def __init__(self):

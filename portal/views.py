@@ -2,11 +2,13 @@ from flask import render_template
 from flask import request, redirect, url_for, flash, session
 
 from portal.form.login import LoginForm
-from portal.form.person import UserAccountForm
+from portal.form.person import UserAccountForm, UserResetPasswordForm
 from portal import app
 from portal.model.models import User
 from portal.model.models import Person
 import os
+import gevent
+
 
 env = {
     'TINFOIL_NAME':os.environ['TINFOIL_NAME'],
@@ -17,7 +19,7 @@ env = {
 def index():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
-        # Attempt to login to the sqlite database   
+        # Attempt to login 
         user = User()
         u = user.login(form.username.data, form.password.data)
         if u:        
@@ -35,6 +37,32 @@ def index():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+
+@app.route("/reset/<reset_code>/<int:personid>", methods=['GET','POST'])
+def reset_password(reset_code, personid):
+    # Check that the reset code is valid
+    user = User()
+    check = user.reset_validate(personid, reset_code)
+    row = {
+        'reset': reset_code,
+        'personid': personid,
+        'check': check,
+    }
+    error = None
+
+    form = UserResetPasswordForm(request.form)
+    if request.method == 'POST' and form.validate():
+        # Save the changed password
+        if form.password1.data==form.password2.data:
+            changed = user.save_password(personid, form.username.data, form.password1.data)
+            if changed['result']:
+                flash('Password changed successfully.')
+                return redirect(url_for('login'))
+            else:
+                error = changed['message']
+    
+    return render_template('reset_password.html', env=env, row=row, form=form, error=error)
 
 
 @app.route("/people/", methods=['GET', 'POST'])
