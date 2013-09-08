@@ -41,7 +41,12 @@ class User(object):
         """
         Verify the user login details.
         """
-        self.cursor.execute("SELECT * FROM Visitor WHERE username=%s AND password=%s", (username.lower(), self._hashed(password)))
+        self.cursor.execute("""
+            SELECT * FROM visitor v 
+            INNER JOIN person p ON p.personid=v.personid 
+            WHERE username=%s AND password=%s
+        """, 
+        (username.lower(), self._hashed(password)))
         row = self.cursor.fetchone()
         
         if row:
@@ -147,7 +152,7 @@ class User(object):
         """
         Create the user account.
         """
-        sql = 'insert into visitor values (%s,%s,%s,%s,%s,%s)'
+        sql = 'insert into visitor values (%s,%s,%s,%s,%s)'
         
         if rec.get('password'):
             pwd = self._hashed(rec['password'])
@@ -155,14 +160,16 @@ class User(object):
             pwd = None
         try:
             self.cursor.execute(sql, (rec['personid'], rec['username'].lower(), pwd,
-                                        rec.get('name'),rec.get('access','Active'),
+                                        rec.get('access','Active'),
                                         rec.get('role','Standard'),))
             self.sqlconn.commit()
         except Exception as e:
             return str(e)
-            
+        
+        # Send the welcome mail with the account name
+        
+        # Send email to reset the password
         self.reset_password(rec['personid'])
-
         
         return None
         

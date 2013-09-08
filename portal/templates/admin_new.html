@@ -10,19 +10,14 @@
 
   <div>
      <div class="row">
-        <!--div class="cell-left"-->
-            <div class="cell-row">
-                 <label for="name">Name:</label>
-                 <input id="name" size="60" class="ui-corner-all" placeholder="Find the Person" onkeyup="keyupEnter(event)" />
-                 <button id="find" onclick="findPerson()">Find</button>
-            </div>
-        <!--/div>
-        <div class="cell-right" id="people">
-        </div-->
+         <div class="cell-row">
+              <label for="name">Name:</label>
+              <input id="name" size="60" class="ui-corner-all" placeholder="Find the Person" onkeyup="keyupEnter(event)" />
+              <button id="find" onclick="findPerson()">Find</button>
+         </div>
      </div>
-  <div id="people">
-  </div>
-     
+     <div id="people">
+     </div>
   </div>
 </div>
 
@@ -39,19 +34,13 @@
             <form method="post" action="/accounts/new/{{ row.personid }}">
                 <div class="cell-data">
                     <div class="subcell">
-                         <div class="subcell-label">Person ID</div>
-                         <div class="subcell-data">
-                            <input id="personid" name="personid" placeholder="Person ID" value="{{ row.personid }}" readonly="readonly" />
+                         <div class="subcell-label">Name</div>
+                         <div class="subcell-data">{{ row.name }}
+                            <input id="personid" name="personid" placeholder="Person ID" value="{{ row.personid }}" type="hidden" />
                             {% if form and form.personid.errors %}
                                 <span class="ui-state-error">{{ form.personid.errors }}</span>
                             {% endif %}                            
                         </div>
-                    </div>
-                </div>
-                <div class="cell-data">
-                    <div class="subcell">
-                         <div class="subcell-label">Name</div>
-                         <div class="subcell-data"><input id="person_name" name="name" placeholder="Name" value="{{ row.name }}" /></div>
                     </div>
                 </div>
                 <div class="cell-data">
@@ -71,7 +60,7 @@
                     <div class="subcell">
                          <div class="subcell-label">Username</div>
                          <div class="subcell-data">
-                            <input id="username" name="username" placeholder="Username" value="{{ row.username }}" />
+                            <input id="username" name="username" placeholder="Username" value="{{ form.username.data }}" />
                             {% if form and form.username.errors %}
                                 <span class="ui-state-error">{{ form.username.errors[0] }}</span>
                             {% endif %}

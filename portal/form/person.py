@@ -12,11 +12,11 @@ class UserAccountForm(Form):
     
 
 class UserResetPasswordForm(Form):
-    username = TextField('Username', [validators.Length(min=6, max=40), validators.Required()])
+    username = TextField('Username', [validators.Length(min=6, max=40), validators.Required()], default='')
     password1 = TextField('Password', [validators.Length(min=6, max=40),
-                                        validators.Required()])
+                                        validators.Required()], default='')
     password2 = TextField('Confirm Password', [validators.Length(min=6, max=40),
                                                 validators.Required(),
-                                                EqualTo('password1', message='Passwords must match')])    
+                                                EqualTo('password1', message='Passwords must match')], default='')    
 
 

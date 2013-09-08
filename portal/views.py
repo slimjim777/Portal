@@ -17,6 +17,10 @@ env = {
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
+    # Redirect if already logged-in
+    if session.get('username'):
+        return redirect(url_for('people'))
+
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
         # Attempt to login 
@@ -58,7 +62,7 @@ def reset_password(reset_code, personid):
             changed = user.save_password(personid, form.username.data, form.password1.data)
             if changed['result']:
                 flash('Password changed successfully.')
-                return redirect(url_for('login'))
+                return redirect(url_for('index'))
             else:
                 error = changed['message']
     
@@ -133,16 +137,18 @@ def accounts_new(person_id=None):
         return redirect(url_for('index'))
     
     p = None 
-    form = None
+    form = UserAccountForm(request.form)
     error = None
-    if request.method == "GET":
-        if person_id:
-            person = Person()
-            p = person.get(person_id)
-            names = p['name'].split(' ')
-            p['username'] = (names[0][0] + names[-1]).lower()
-    elif request.method == "POST":
-        form = UserAccountForm(request.form)
+    if person_id:
+        person = Person()
+        p = person.get(person_id)
+
+    if request.method == "GET" and p:
+        # Default the username based on the person's name
+        names = p['name'].split(' ')
+        form.username.data = (names[0][0] + names[-1]).lower()
+
+    if request.method == "POST":
         if form.validate():
             # Create the user account
             user = User()
@@ -152,11 +158,6 @@ def accounts_new(person_id=None):
             })
             if error is None:
                 return redirect('/accounts/%d' % person_id)
-        if not form.validate() or error:
-            p = {
-                'personid':person_id,
-                'username':request.form.get('username',''),
-            }
         
     return render_template('admin_new.html', env=env, row=p, form=form, error=error) 
 

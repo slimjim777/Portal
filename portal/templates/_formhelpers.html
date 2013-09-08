@@ -4,11 +4,9 @@
 {{ field(**kwargs)|safe }}<br />
 
   {% if field.errors %}
-    <!--ul -->
     {% for error in field.errors %}
       <p class="ui-state-error">{{ error }}</p>
     {% endfor %}
-    <!--/ul-->
   {% endif %}
   
 {% endmacro %}

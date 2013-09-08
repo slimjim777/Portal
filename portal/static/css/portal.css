@@ -4,6 +4,11 @@
     margin-right: auto;
 }
 
+#flashed {
+    margin-top: 20px;
+    padding: 0.7em;
+}
+
 label, input {
   display: block;
   
@@ -39,10 +44,9 @@ nav#main .searchform {
 }
 
 nav#main .searchform {
-	float: right;
-	width: 28%;
 	margin-top: 12px;
 	padding: 0;
+	/*margin-left: 300px;*/
 	border-radius: 20px;
 	position: relative;
 }
@@ -51,20 +55,18 @@ nav#main .searchform input {
 	text-decoration: none;
 	font: 12px/12px "Lucida Grande", Lucida, Verdana, sans-serif;
 	padding: 5px 10px;
-	margin: 0;
+	margin: 0px;
 	background-color: transparent;
 	border-style: none;
 	color: #fff;
 	line-height: 1.3;
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.76);
-	width: 85%;
 	box-shadow: none;
 }
 
 nav#main .searchform input:focus {
 	outline: none;
 }
-
 
 .no-boxshadow nav#main .searchform {
 	border: 1px solid #333;
@@ -106,6 +108,10 @@ nav#main .searchform input:placeholder { /* 2 */
 	width: 1px;
 }
 
+#find_name {
+    font-size: 13px;
+}
+
 nav#main .searchform .icon-search {
 	position: absolute;
 	right: 10px;
@@ -114,11 +120,14 @@ nav#main .searchform .icon-search {
 	border-width: 0;
 	border-left: 1px solid rgba(7, 7, 7, 0.65);
 	background-color: transparent;
-	padding: 0 7 0 7px;
+	padding: 0 7px 0 10px;
 	opacity: 0.75;
 	color: #fff;
 	background-image: url(/static/css/cupertino/images/ui-icons_ffffff_256x240.png);
 	background-position: -160px -112px;
+}
+
+#searchform {
 }
 
 .icon-search:before {
@@ -149,10 +158,24 @@ nav#main .searchform .icon-search {
     display: table-row;
 }
 
+#main .row {
+    display: table-row;
+    width: 100%;
+}
+
 .cell-left, .cell-right {
     display: table-cell;
     width: 600px;
 }
+
+#main .cell-left, #main .cell-right {
+    display: table-cell;
+}
+
+#main .cell-left {
+    width: 70%;
+}
+
 
 .cell-row {
     display: table-row;

@@ -37,40 +37,46 @@
 <body>
 
     <nav id="main" class="banner">
+
         <h1>Lifechurch Portal</h1>
-        
-        {% if session.username %}
-        <form method="post" action="/people/" class="searchform">
-            <button type="submit" class="icon-search">
-            </button>
-            <label>
-                <input id="search" type="text" name="search" value="" placeholder="Search" size="100" maxlength="100" />
-            </label>
-        </form>
-                
-        <form>
-          <div id="radio" class="menu-top">
-            <input type="radio" id="r-people" name="radio" /><label for="r-people">People</label>
-            {% if session.role=='Admin' %}
-            <input type="radio" id="r-admin" name="radio" /><label for="r-admin">User Accounts</label>
-            {% else %}
-            <input type="radio" id="r-settings" name="radio" /><label for="r-settings">My Account</label>
+
+
+        <div class="row">
+            {% if session.username %}
+            <span class="cell-left">   
+                  <div id="radio" class="menu-top">
+                    <input type="radio" id="r-people" name="radio" /><label for="r-people">People</label>
+                    {% if session.role=='Admin' %}
+                    <input type="radio" id="r-admin" name="radio" /><label for="r-admin">User Accounts</label>
+                    {% else %}
+                    <input type="radio" id="r-settings" name="radio" /><label for="r-settings">My Account</label>
+                    {% endif %}
+                    <input type="radio" id="r-logout" name="radio" /><label for="r-logout">Logout</label>
+                  </div>
+            </span>        
+
+            <span class="cell-right">
+                 <form id="searchform" method="post" action="/people/" class="searchform">
+                     <button type="submit" class="icon-search">
+                     </button>
+                     <label>
+                         <input id="search" type="text" name="search" value="" placeholder="Search" maxlength="100" />
+                     </label>
+                 </form>
+            </span>
             {% endif %}
-            <input type="radio" id="r-logout" name="radio" /><label for="r-logout">Logout</label>
-          </div>
-        </form>           
-        {% endif %}
+        </div>
 
     </nav>
 
 <div class="page">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <ul class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
+        <div id="flashed" class="ui-state-highlight ui-corner-all">
         {% for message in messages %}
           {{ message }}<br />
         {% endfor %}
-        </ul>
+        </div>
       {% endif %}
     {% endwith %}
 
