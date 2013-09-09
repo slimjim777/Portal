@@ -1,4 +1,4 @@
-from flask import request, redirect, url_for, session, abort, jsonify
+from flask import request, redirect, url_for, session, abort, jsonify, flash
 from portal import app
 from portal.model.models import User, Event, Person
 from portal.views import is_authenticated
@@ -171,6 +171,21 @@ def scan():
     person = Person()
     result = person.scan(request.json['tag'])
     return jsonify(result=result)
+
+
+@app.route("/rest/v1.0/reset", methods=['POST'])
+def reset_request():
+    """
+    Initiate the password login (from the login screen)
+    """
+    if 'username' in request.json:
+        user = User()
+        response = user.reset(request.json['username'])
+        if response:
+            flash("Password reset Email has been sent for username '%s'" % request.json['username'])
+        return jsonify({'response':response})
+    else:
+        return jsonify({'response':False, 'message':'Username must be supplied'})
 
 
 def _register(action):

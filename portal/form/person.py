@@ -8,7 +8,6 @@ class FindPersonForm(Form):
 class UserAccountForm(Form):
     personid = IntegerField('Person ID', [validators.Required()])
     username = TextField('Username', [validators.Length(min=4, max=40), validators.Required()])
-    name = TextField('Name', [validators.Length(max=200)])
     
 
 class UserResetPasswordForm(Form):

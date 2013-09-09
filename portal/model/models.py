@@ -173,6 +173,17 @@ class User(object):
         
         return None
         
+    def reset(self, username):
+        """
+        Check that the username is valid, if so, reset the password.
+        """
+        self.cursor.execute('select * from visitor where username=%s', (username,))
+        v = self.cursor.fetchone()
+        if not v:
+            return False
+        
+        return self.reset_password(v['personid'])
+        
     def reset_password(self, personid):
         """
         Generate a reset code and expiry date on the User Account.

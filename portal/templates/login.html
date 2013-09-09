@@ -9,9 +9,87 @@
         {{ render_field(form.username) }}
         {{ render_field(form.password) }}
       <p><input type="submit" value="Login"></p>
+      <p><a href="#" onclick="openDialog(event)">Forgotten your password?</a>
     </form>
 
   </div>
 </div>
+
+<div id="dialog-form" title="Reset Password">
+  <p class="validateTips">Please enter your Username to start the process to reset your password.</p>
+
+  <br />
+  <div id="d-message" class="ui-state-error ui-corner-all"></div>
+ 
+  <form>
+  <fieldset>
+    <label for="name">Username</label>
+    <input type="text" name="username" id="d-username" class="text ui-widget-content ui-corner-all" size="40" maxlength="40" />
+  </fieldset>
+  </form>
+  <p>Then check your email for the reset instructions.</p>
+</div>
+
+<script>
+    var message = $('#d-message');
+    $('#dialog-form').dialog({
+      autoOpen: false,
+      height: 400,
+      width: 400,
+      modal: true,
+      buttons: {
+        "Reset Password": function() {
+            var username = $('#d-username').val();
+            username = username.replace(/[^a-zA-Z0-9\.]+/g,'');
+            if (username.length<6) {
+                message.text('Username must be greater than 6 characters');
+                message.fadeIn();
+                return;
+            }
+            
+            var postdata = {
+                username: username
+            };
+            
+            // Check that the username is valid
+            var request = $.ajax({
+              type: 'POST',
+              url: '/rest/v1.0/reset',
+              data: JSON.stringify(postdata),
+              contentType:"application/json",
+              dataType: "json",
+              success: function(data) {
+                if (data.response) {
+                    document.location.href = '/';
+                } else {
+                    if (response.message) {
+                        message.text( response.message );
+                    } else {
+                        message.text('Error resetting the password. Please check the Username.');
+                    }
+                    message.fadeIn();
+                }
+              },
+              error: function(e) {
+                  message.text(e);
+              }
+            });  
+            
+            
+        },
+        Cancel: function() {
+            $( this ).dialog( "close" );
+        }
+      },
+      close: function() {
+        //allFields.val( "" ).removeClass( "ui-state-error" );
+      }
+    });
+    
+    function openDialog(ev) {
+        $('#d-message').hide();
+        $( "#dialog-form" ).dialog( "open" );
+    }
+</script>
 
 {% endblock %}
