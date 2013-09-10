@@ -35,7 +35,11 @@
            <div class="cell-data">
                <div class="subcell">
                     <div class="subcell-label">Password</div>
-                    <div class="subcell-data"><a href="#">Change Password</a></div>
+                    {% if row.username == session.username %}
+                    <div class="subcell-data"><a href="#" onclick="showDialog()">Change Password</a></div>
+                    {% else %}
+                    <div class="subcell-data"><a href="#" onclick="showDialog()">Reset Password</a></div>                    
+                    {% endif %}
                </div>
            </div>
            <div class="cell-data">
@@ -76,8 +80,168 @@
      </div>
   </div>
 
-  {% endif %}
 </div>
+
+{% if row.username == session.username %}
+<!-- Change Password -->
+<div id="dialog-form" title="Change Password">
+  <p class="validateTips">Change the password for your account.</p>
+  <br />
+  <div id="d-message" class="ui-state-error ui-corner-all"></div>
+ 
+  <form>
+  <fieldset>
+    <input type="hidden" name="personid" id="d-personid" value="{{ row.personid }}" />
+    <input type="hidden" name="username" id="d-username" value="{{ row.username }}" />
+    <label for="d-password1">New Password</label>
+    <input type="password" name="password1" id="d-password1" class="text ui-widget-content ui-corner-all" size="40" maxlength="40" />
+    <label for="d-password2">Confirm Password</label>
+    <input type="password" name="password2" id="d-password2" class="text ui-widget-content ui-corner-all" size="40" maxlength="40" />
+  </fieldset>
+  </form>
+</div>
+
+<script>
+    var message = $('#d-message');
+    $('#dialog-form').dialog({
+        autoOpen: false,
+        height: 400,
+        width: 400,
+        modal: true,
+        buttons: {
+            "Reset Password": function() {
+                var personid = $('#d-personid').val();
+                var username = $('#d-username').val();
+                var password = $('#d-password1').val();
+                if (!password) {
+                    message.text('Please enter a password.');
+                    message.fadeIn();
+                    return;
+                }
+                if (password != $('#d-password2').val()) {
+                    message.text('The passwords must match.');
+                    message.fadeIn();
+                    return;
+                }
+                
+                var postdata = {
+                    personid: personid,
+                    username: username,
+                    password: password
+                };
+            
+                // Check that the username is valid
+                var request = $.ajax({
+                  type: 'POST',
+                  url: '/rest/v1.0/save_password',
+                  data: JSON.stringify(postdata),
+                  contentType:"application/json",
+                  dataType: "json",
+                  success: function(data) {
+                    if (data.response) {
+                        document.location.href = '/accounts/' + personid;
+                    } else {
+                        if (response.message) {
+                            message.text( response.message );
+                        } else {
+                            message.text('Error resetting the password. Please check the Username.');
+                        }
+                        message.fadeIn();
+                    }
+                  },
+                  error: function(e) {
+                      message.text(e);
+                  }
+                });  
+                
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }         
+        },
+        close: function() {
+          //allFields.val( "" ).removeClass( "ui-state-error" );
+        }
+    });
+
+</script>
+<!-- //Change Password -->
+
+{% else %}
+<!-- Reset Password -->
+<div id="dialog-form" title="Reset Password">
+  <p class="validateTips">Confirm that you want to reset the password for {{ row.name }}.</p>
+
+  <br />
+  <div id="d-message" class="ui-state-error ui-corner-all"></div>
+ 
+  <form>
+  <fieldset>
+    <input type="hidden" name="personid" id="d-personid" value="{{ row.personid }}" />
+    <label for="d-username">Username</label>
+    <input type="text" name="username" id="d-username" value="{{ row.username }}" readonly="readonly" class="text ui-widget-content ui-corner-all" size="40" maxlength="40" />
+  </fieldset>
+  </form>
+  <p>This will send an Email to the user with the reset instructions.</p>
+</div>
+
+<script>
+    var message = $('#d-message');
+    $('#dialog-form').dialog({
+      autoOpen: false,
+      height: 400,
+      width: 400,
+      modal: true,
+      buttons: {
+        "Reset Password": function() {
+            var personid = $('#d-personid').val();
+        
+            var postdata = {
+                username: $('#d-username').val()
+            };
+            
+            // Check that the username is valid
+            var request = $.ajax({
+              type: 'POST',
+              url: '/rest/v1.0/reset',
+              data: JSON.stringify(postdata),
+              contentType:"application/json",
+              dataType: "json",
+              success: function(data) {
+                if (data.response) {
+                    document.location.href = '/accounts/' + personid;
+                } else {
+                    if (response.message) {
+                        message.text( response.message );
+                    } else {
+                        message.text('Error resetting the password. Please check the Username.');
+                    }
+                    message.fadeIn();
+                }
+              },
+              error: function(e) {
+                  message.text(e);
+              }
+            });  
+            
+            
+        },
+        Cancel: function() {
+            $( this ).dialog( "close" );
+        }
+      },
+      close: function() {
+        //allFields.val( "" ).removeClass( "ui-state-error" );
+      }
+    });
+
+</script>
+<!-- //Reset Password -->
+
+{% endif %}
+
+  {% endif %}
+
 
 <script>
     function toggleTerritory($el) {
@@ -118,6 +282,12 @@
             }
           }
         });  
+    }
+    
+        
+    function showDialog() {
+        $('#d-message').hide();
+        $( "#dialog-form" ).dialog( "open" );        
     }
 </script>
 

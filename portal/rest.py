@@ -176,13 +176,31 @@ def scan():
 @app.route("/rest/v1.0/reset", methods=['POST'])
 def reset_request():
     """
-    Initiate the password login (from the login screen)
+    Initiate the password reset (from the login screen)
     """
     if 'username' in request.json:
         user = User()
         response = user.reset(request.json['username'])
         if response:
             flash("Password reset Email has been sent for username '%s'" % request.json['username'])
+        return jsonify({'response':response})
+    else:
+        return jsonify({'response':False, 'message':'Username must be supplied'})
+
+
+@app.route("/rest/v1.0/save_password", methods=['POST'])
+def save_password():
+    """
+    Save the new password (from the user account screen)
+    """
+    if not is_authenticated():
+        abort(403)
+
+    if 'personid' in request.json and 'username' in request.json and 'password' in request.json:
+        user = User()
+        response = user.save_password(request.json['personid'], request.json['username'], request.json['password'])
+        if response:
+            flash("Password changed successfully")
         return jsonify({'response':response})
     else:
         return jsonify({'response':False, 'message':'Username must be supplied'})

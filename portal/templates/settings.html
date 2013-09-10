@@ -31,7 +31,7 @@
            <div class="cell-data">
                <div class="subcell">
                     <div class="subcell-label">Password</div>
-                    <div class="subcell-data"><a href="#">Change Password</a></div>
+                    <div class="subcell-data"><a href="#" onclick="showDialog()">Change Password</a></div>
                </div>
            </div>
            <div class="cell-data">
@@ -57,6 +57,91 @@
        </div>       
      </div>
 
+<!-- Change Password -->
+<div id="dialog-form" title="Change Password">
+  <p class="validateTips">Change the password for your account.</p>
+  <br />
+  <div id="d-message" class="ui-state-error ui-corner-all"></div>
+ 
+  <form>
+  <fieldset>
+    <input type="hidden" name="personid" id="d-personid" value="{{ row.personid }}" />
+    <input type="hidden" name="username" id="d-username" value="{{ row.username }}" />
+    <label for="d-password1">New Password</label>
+    <input type="password" name="password1" id="d-password1" class="text ui-widget-content ui-corner-all" size="40" maxlength="40" />
+    <label for="d-password2">Confirm Password</label>
+    <input type="password" name="password2" id="d-password2" class="text ui-widget-content ui-corner-all" size="40" maxlength="40" />
+  </fieldset>
+  </form>
+</div>
+
+<script>
+    var message = $('#d-message');
+    $('#dialog-form').dialog({
+        autoOpen: false,
+        height: 400,
+        width: 400,
+        modal: true,
+        buttons: {
+            "Reset Password": function() {
+                var personid = $('#d-personid').val();
+                var username = $('#d-username').val();
+                var password = $('#d-password1').val();
+                if (!password) {
+                    message.text('Please enter a password.');
+                    message.fadeIn();
+                    return;
+                }
+                console.log($('#d-password2').val());
+                if (password != $('#d-password2').val()) {
+                    message.text('The passwords must match.');
+                    message.fadeIn();
+                    return;
+                }
+                
+                var postdata = {
+                    personid: personid,
+                    username: username,
+                    password: password
+                };
+            
+                // Check that the username is valid
+                var request = $.ajax({
+                  type: 'POST',
+                  url: '/rest/v1.0/save_password',
+                  data: JSON.stringify(postdata),
+                  contentType:"application/json",
+                  dataType: "json",
+                  success: function(data) {
+                    if (data.response) {
+                        document.location.href = '/settings';
+                    } else {
+                        if (response.message) {
+                            message.text( response.message );
+                        } else {
+                            message.text('Error resetting the password. Please check the Username.');
+                        }
+                        message.fadeIn();
+                    }
+                  },
+                  error: function(e) {
+                      message.text(e);
+                  }
+                });  
+                
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+            }         
+        },
+        close: function() {
+          //allFields.val( "" ).removeClass( "ui-state-error" );
+        }
+    });
+
+</script>
+<!-- //Change Password -->
+
   {% endif %}
   </div>
 </div>
@@ -67,6 +152,11 @@
         $( "#r-settings" )[0].checked = true;
         $( "#radio" ).buttonset("refresh");
     });
+    
+    function showDialog() {
+        $('#d-message').hide();
+        $( "#dialog-form" ).dialog( "open" );        
+    }    
 </script>
 
 {% endblock %}
