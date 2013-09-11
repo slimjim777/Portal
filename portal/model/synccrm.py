@@ -149,4 +149,23 @@ class SyncCRM(object):
                 
         app.logger.info('Registration push done')
 
+
+    def groups_sync(self, from_date):
+        """
+        Get the available team-serving options.
+        """
+        app.logger.info('Team-Serving options sync')
+        # Store the date/time
+        sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
+
+        # Get the updated team-serving options
+        records = self.crm.team_serving_options(from_date)
         
+        # Upsert the records into the Database
+        db = Person()
+        for r in records:
+            db.groups_upsert(r)
+
+        # Update the last sync date
+        self.update_lastsync('groups', sync_start)
+        app.logger.info('Team-Serving options sync')

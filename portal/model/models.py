@@ -253,9 +253,6 @@ class User(object):
         server.quit()
         
         
-        
-            
-
 class SageCRMWrapper(object):
     def __init__(self):
         self.connection = None
@@ -370,7 +367,36 @@ class Person(SageCRMWrapper):
             self.sqlconn.commit()
             
         return True    
-      
+ 
+    def groups_upsert(self, record):
+        """
+        Update or insert the team serving record.
+        """
+        if 'groupsid' not in record:
+            return False
+            
+        #app.logger.debug(record)
+        # Try updating the record and get the rowcount to see if it worked
+        sql_update = """
+            UPDATE groups
+            SET code=%(code)s, name=%(name)s 
+            WHERE groupsid=%(groupsid)s 
+        """
+        self.cursor.execute(sql_update, record)
+        if self.cursor.rowcount > 0:
+            # Updated an existing record
+            self.sqlconn.commit()
+        else:
+            # Create a new person record (field order must match the table)
+            sql_insert = """
+                INSERT INTO groups 
+                VALUES (%(groupsid)s,%(name)s,%(code)s)
+                """
+            self.cursor.execute(sql_insert, record)
+            self.sqlconn.commit()
+            
+        return True                       
+        
         
     def family(self, family_number, event_id):
         """
@@ -877,7 +903,26 @@ class CRMPerson(SageCRMWrapper):
             }
             people.append(record)
         return people    
-            
+
+
+    def team_serving_options(self, from_date):
+        # Query the CRM system
+        if not from_date:
+            from_date = '1980-01-01 00:00:00'
+        where = "capt_family='pers_c_teamserving' and capt_updateddate>='%s'" % from_date
+        option_list = self.connection.client.service.query(where, "Custom_Captions")
+        if 'records' not in option_list:
+            return []
+        
+        records = []
+        for o in option_list.records:
+            record = {
+                'groupsid': o.captionid,
+                'code': o.code,
+                'name': o.uk
+            }
+            records.append( record )
+        return records
         
     def family_tag(self, familyid):
         """
