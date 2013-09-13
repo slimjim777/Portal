@@ -74,6 +74,7 @@ class User(object):
         if user:
             user = dict(user)
             user['territories'] = self.territories(user['access'])
+            user['groups'] = [x['name'] for x in self.groups(personid)]
         return user
 
     def getall(self):
@@ -90,8 +91,7 @@ class User(object):
         sql = """
             select g.* from groups g
             inner join user_group ug on ug.groupsid=g.groupsid
-            inner join visitor u on ug.personid=u.personid
-            where u.personid = %s
+            where ug.personid = %s
         """        
         self.cursor.execute(sql, (personid,))
         return self.cursor.fetchall()
@@ -366,7 +366,32 @@ class Person(SageCRMWrapper):
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
             
+        # Update the group memberships
+        if 'team_serving' in record:
+            self.group_membership_update(record['personid'], record['team_serving'])
+            
         return True    
+
+ 
+    def group_membership_update(self, personid, group_names):
+        """
+        Update the group membership for the person by deleting the existing ones
+        and adding the current memberships.
+        """
+        # Delete existing memberships
+        sql_delete = 'delete from membership where personid=%s'
+        self.cursor.execute(sql_delete, (personid,))
+        
+        # Add the current memberships
+        if len(group_names)>0:
+            names = tuple(x.replace('&','&&') for x in group_names)
+            sql_insert = """
+                insert into membership (personid,groupsid)
+                    select %s, groupsid from groups where name in %s
+            """
+            self.cursor.execute(sql_insert, (personid,names,))     
+            self.sqlconn.commit()
+  
  
     def groups_upsert(self, record):
         """
@@ -568,10 +593,46 @@ class Person(SageCRMWrapper):
         self.cursor.execute("select * from person where personid=%s", (personid,))
         row = self.cursor.fetchone()
         if row:
-            return dict(row)
+            p = dict(row)
+            return p
         else:
             return row
 
+
+    def group_membership(self, personid):
+        """
+        Get the group membership and groups that the person is not a part of.
+        """
+        # Get the groups the person is in
+        sql = """
+            select g.name from membership m 
+            inner join groups g on m.groupsid=g.groupsid 
+            where personid=%s
+        """
+        self.cursor.execute(sql, (personid,))
+        groups = []
+        for g in self.cursor.fetchall():
+            g['name'] = g['name'].replace('&&','&')
+            groups.append(dict(g))
+
+        # Get the groups the person is not in
+        sql = """
+            select g.name from groups g 
+            where g.groupsid not in 
+             (select m.groupsid from membership m where m.groupsid=g.groupsid 
+              and m.personid=%s )
+        """
+        self.cursor.execute(sql, (personid,))
+        groups_not = []
+        for g in self.cursor.fetchall():
+            g['name'] = g['name'].replace('&&','&')
+            groups_not.append(dict(g))
+
+        return {
+            'team_serving': groups,
+            'team_serving_not': groups_not,
+            }
+            
 
     def _register(self, family_number, people, event_id, stage, status):
         print family_number, people, event_id, stage, status
@@ -844,6 +905,11 @@ class CRMPerson(SageCRMWrapper):
             else:
                 medical_info = []
                 
+            if getattr(p, 'c_teamserving', None):
+                team_serving = p.c_teamserving.records
+            else:
+                team_serving = []
+                
             # Get the family tag number for the parent
             if getattr(p, 'companyid', None):
                 family_tag = self.family_tag(p.companyid)
@@ -900,6 +966,7 @@ class CRMPerson(SageCRMWrapper):
                 'home_phone': home_phone,
                 'mobile_phone': mobile_phone,
                 'email': getattr(p, 'emailaddress',''),
+                'team_serving': team_serving,
             }
             people.append(record)
         return people    

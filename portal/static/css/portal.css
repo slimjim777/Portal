@@ -9,6 +9,22 @@
     padding: 0.7em;
 }
 
+#create-user {
+    font-size:0.8em;
+}
+
+span.group {
+    color: #aaa;
+    background-color: #ddd;
+    padding: 2px;
+    margin: 2px 2px;
+}
+
+span.group.ui-state-active {
+    color: #fff;
+    background-color: rgb(59, 170, 227);
+}
+
 label, input {
   display: block;
   

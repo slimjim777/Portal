@@ -125,7 +125,42 @@
   {% endif %}
 </div>
 
+{% if row and row.territory!='Kidswork' %}
+<br />
+<div id="accordion2">
+    <h3>Team Serving</h3>
+   
+    <div>
+        <div class="row">
+            <div class="cell">{{ row.firstname }} is serving in the following <span class="group ui-corner-all ui-state-active">highlighted</span> groups.</div>
+            {% for r in row.team_serving %}
+                {% if r.name in session.groups or session.role == 'Admin' %}
+                    <button class="ui-corner-all ui-state-active" onclick="toggleServing(this)">{{ r.name }}</button>
+                {% else %}
+                    <span class="group ui-corner-all ui-state-active">{{ r.name }}</span>
+                {% endif %}
+            {% endfor %}
+            {% if row.team_serving and row.team_serving_not %}
+                <br />
+            {% endif %}
+            {% for r in row.team_serving_not %}
+                {% if r.name in session.groups  or session.role == 'Admin' %}
+                    <button onclick="toggleServing(this)">{{ r.name }}</button>
+                {% else %}
+                    <span class="group ui-corner-all">{{ r.name }}</span>
+                {% endif %}
+            {% endfor %}            
+        </div>
+    </div>
+</div>
 
+<script>
+    function toggleServing(el) {
+        var groupName = $(el).text();
+    
+    }
+</script>
+{% endif %}
 
 {% if row and row.territory=='Kidswork' %}
 <br />

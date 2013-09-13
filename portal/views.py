@@ -31,6 +31,10 @@ def index():
             session['username'] = u['username']
             session['access'] = u['access'].split(',')
             session['role'] = u['role']
+            
+            # Set the team-serving groups this person can update
+            groups = user.groups(u['personid'])
+            session['groups'] = [x['name'] for x in groups]
             return redirect(url_for('people'))
         else:
             form.username.errors.append('Username or password is incorrect.')
@@ -90,6 +94,7 @@ def person_get(person_id):
     
     person = Person()
     p = person.get(person_id)
+    p.update(person.group_membership(person_id))
     
     return render_template('person.html', env=env, row=p)
 
