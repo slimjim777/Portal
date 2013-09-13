@@ -75,6 +75,7 @@ class User(object):
             user = dict(user)
             user['territories'] = self.territories(user['access'])
             user['groups'] = [x['name'] for x in self.groups(personid)]
+            user['groups_not'] = [x['name'] for x in self.groups_unselected(personid)]
         return user
 
     def getall(self):
@@ -91,7 +92,8 @@ class User(object):
         sql = """
             select g.* from groups g
             inner join user_group ug on ug.groupsid=g.groupsid
-            where ug.personid = %s
+            where ug.personid = %s 
+            order by g.name
         """        
         self.cursor.execute(sql, (personid,))
         return self.cursor.fetchall()
@@ -100,6 +102,7 @@ class User(object):
         sql = """
             select * from groups
             where groupsid not in (select groupsid from user_group where personid = %s)
+            order by name
         """
         self.cursor.execute(sql, (personid,))
         return self.cursor.fetchall()
@@ -251,6 +254,32 @@ class User(object):
         server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
         server.sendmail(os.environ['EMAIL_FROM'], to_list, mimetext.as_string())
         server.quit()
+
+    def user_group_update(self, personid, action, group):
+        """
+        Update the group for a user.
+        """
+        params = {
+            'personid': personid,
+            'name': group.replace('&','&&'),
+        }
+        if action == 'remove':
+            sql = """
+                delete from user_group 
+                where groupsid in (select groupsid from groups where name=%(name)s) 
+                  and personid=%(personid)s 
+            """
+        elif action == 'add':
+            sql = """
+                insert into user_group (personid, groupsid)
+                    (select %(personid)s,groupsid from groups where name=%(name)s)
+            """
+        else:
+            return {'response':'Failed', 'error':'Invalid action'}
+        
+        self.cursor.execute(sql, params)
+        self.sqlconn.commit()
+        return {'response':'Success'}
         
         
 class SageCRMWrapper(object):
@@ -391,6 +420,33 @@ class Person(SageCRMWrapper):
             """
             self.cursor.execute(sql_insert, (personid,names,))     
             self.sqlconn.commit()
+
+
+    def membership_update(self, personid, action, membership):
+        """
+        Update the membership for a person.
+        """
+        params = {
+            'personid': personid,
+            'name': membership.replace('&','&&'),
+        }
+        if action == 'remove':
+            sql = """
+                delete from membership 
+                where groupsid in (select groupsid from groups where name=%(name)s) 
+                  and personid=%(personid)s 
+            """
+        elif action == 'add':
+            sql = """
+                insert into membership (personid, groupsid)
+                    (select %(personid)s,groupsid from groups where name=%(name)s)
+            """
+        else:
+            return {'response':'Failed', 'error':'Invalid action'}
+        
+        self.cursor.execute(sql, params)
+        self.sqlconn.commit()
+        return {'response':'Success'}
   
  
     def groups_upsert(self, record):
@@ -607,7 +663,8 @@ class Person(SageCRMWrapper):
         sql = """
             select g.name from membership m 
             inner join groups g on m.groupsid=g.groupsid 
-            where personid=%s
+            where personid=%s 
+            order by g.name
         """
         self.cursor.execute(sql, (personid,))
         groups = []
@@ -621,6 +678,7 @@ class Person(SageCRMWrapper):
             where g.groupsid not in 
              (select m.groupsid from membership m where m.groupsid=g.groupsid 
               and m.personid=%s )
+            order by g.name
         """
         self.cursor.execute(sql, (personid,))
         groups_not = []

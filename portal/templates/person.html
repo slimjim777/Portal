@@ -158,6 +158,50 @@
     function toggleServing(el) {
         var groupName = $(el).text();
     
+        var postdata = {
+            personid:{{ row.personid }},
+            action: '',
+            membership:$(el).text()
+        };
+        
+        var classNameUndo = 'ui-corner-all ui-state-active';
+        
+        if (!$(el).attr('class')) {
+            // Enable territory
+            classNameUndo = '';
+            $(el).attr('class', 'ui-corner-all ui-state-active');
+            postdata.action = 'add';
+        } else {
+            // Disable territory
+            classNameUndo = 'ui-corner-all ui-state-active';
+            $(el).attr('class', '');
+            postdata.action = 'remove';
+        }
+        
+        console.log(postdata);
+        $( "#progressbar" ).show();
+        
+        var request = $.ajax({
+          type: 'POST',
+          url: '/rest/v1.0/membership',
+          data: JSON.stringify(postdata),
+          contentType:"application/json",
+          dataType: "json",
+          success: function(data) {
+            if(data.response=='Failed') {
+                console.log(data.error);
+                var $message = $('#messages');
+                $message.text(data.error);
+                $message.attr('class', 'ui-state-error ui-corner-all');
+                $message.show().fadeOut(2000);
+                $(el).attr('class', classNameUndo);
+            } else {
+                document.location.href = '/people/{{ row.personid }}';
+                $( "#progressbar" ).hide();
+            }
+          }
+        });  
+
     }
 </script>
 {% endif %}

@@ -25,6 +25,11 @@ span.group.ui-state-active {
     background-color: rgb(59, 170, 227);
 }
 
+.label {
+    color: #888;
+    font-size: 0.9em;    
+}
+
 label, input {
   display: block;
   

@@ -119,6 +119,52 @@ def territory():
     return jsonify(response)
 
 
+@app.route("/rest/v1.0/user_group", methods=['POST'])
+def user_group():
+    """
+    Add/remove team-serving group from user.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+    if ('personid' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+    if ('action' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The 'action' must be supplied." })    
+    if ('group' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The 'group' must be supplied." })    
+
+    user = User()
+    response = user.user_group_update(request.json['personid'], request.json['action'], request.json['group'])
+    return jsonify(response)
+
+
+@app.route("/rest/v1.0/membership", methods=['POST'])
+def membership():
+    """
+    Add/remove group membership for an individual.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+    if ('personid' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+    if ('action' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The 'action' must be supplied." })    
+    if ('membership' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The 'membership' must be supplied." })    
+
+    person = Person()
+    response = person.membership_update(request.json['personid'], request.json['action'], request.json['membership'])
+    return jsonify(response)
+
+
 @app.route("/rest/v1.0/sign-in", methods=['POST'])
 def sign_in():
     """
