@@ -74,8 +74,6 @@ class User(object):
         if user:
             user = dict(user)
             user['territories'] = self.territories(user['access'])
-            user['groups'] = [x['name'] for x in self.groups(personid)]
-            user['groups_not'] = [x['name'] for x in self.groups_unselected(personid)]
         return user
 
     def getall(self):
