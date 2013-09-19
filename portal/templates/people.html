@@ -17,6 +17,15 @@
   {% if not rows %}
     <p>No records found. Use the search box to find people by name.</p>
   {% else %}
+    <div>
+        <form method="POST" action="/people/" id="find_person">
+            <input type="hidden" name="search" value="{{ search }}" />
+            <input type="hidden" name="person_stack" value="{{ person_stack }}" />
+            <input type="hidden" name="next_person" value="{{ next_person }}" />
+            <button name="direction" value="back">&lt;</button>
+            <button name="direction" value="forward">&gt;</button>
+        </form>
+    </div>
     <table class="grid">
     <tr>
         <th>Name</th><th>Type</th><th>Territory</th><th>Email</th><th>Home Phone</th><th>Mobile Phone</th>

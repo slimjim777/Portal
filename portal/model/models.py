@@ -625,13 +625,17 @@ class Person(SageCRMWrapper):
         return record
 
 
-    def find(self, search):
+    def find(self, search, from_person='', limit=30):
         """
         Search for people by name.
         """
         ids = tuple(x for x in session['access'])
-        sql = "select * from person where name ilike '%%'||%s||'%%' and territory in %s"
-        self.cursor.execute(sql, (search,ids,))
+        sql = """select * from person where name ilike '%%'||%s||'%%' and territory in %s 
+        and name >= %s 
+        order by name 
+        limit %s
+        """
+        self.cursor.execute(sql, (search,ids,from_person,limit,))
         
         rows = self.cursor.fetchall()
         if not rows:

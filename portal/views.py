@@ -80,10 +80,35 @@ def people():
         return redirect(url_for('index'))
 
     rows = []
+    search=''
+    person_stack = []
+    next_person = ''
     if request.method == 'POST':
         person = Person()
-        rows = person.find(request.form.get('search',''))
-    return render_template('people.html', env=env, rows=rows)
+        
+        search = request.form.get('search','')
+        person_stack = request.form.get('person_stack','').split('|')
+        
+        # Set the 'from' name from the direction
+        if request.form.get('direction','forward')=='forward':
+            rows = person.find(search, request.form.get('next_person',''))
+        else:
+            person_stack.pop()
+            if len(person_stack)>0:
+                prev_person = person_stack[-1]
+            else:
+                prev_person = ''
+            rows = person.find(search, prev_person)
+        
+        # Define the previous and next people names from the results
+        if rows:
+            if request.form.get('direction','forward')=='forward':
+                first = rows[0].get('name','')
+                person_stack.append(first)
+        
+            next_person = rows[-1].get('name','')
+            
+    return render_template('people.html', env=env, rows=rows, search=search, next_person=next_person, person_stack='|'.join(person_stack))
 
 
 @app.route("/people/<int:person_id>", methods=['GET'])
