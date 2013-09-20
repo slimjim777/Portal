@@ -96,6 +96,28 @@ def person_find():
     return jsonify(result=rows)
 
 
+@app.route("/rest/v1.0/person/groups", methods=['POST'])
+def person_groups():
+    """
+    Find the people in a particular 'team-serving' group.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+        
+    groups = request.json.get('groups',[])
+    if len(groups)==0:
+        return jsonify(result=[])
+    
+    person = Person()
+    rows = person.people_in_groups(groups)
+    
+    return jsonify(result=rows)
+
+
 @app.route("/rest/v1.0/territory", methods=['POST'])
 def territory():
     """
@@ -250,7 +272,6 @@ def save_password():
         return jsonify({'response':response})
     else:
         return jsonify({'response':False, 'message':'Username must be supplied'})
-
 
 def _register(action):
     if not is_authenticated():

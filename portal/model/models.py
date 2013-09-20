@@ -420,6 +420,30 @@ class Person(SageCRMWrapper):
             self.sqlconn.commit()
 
 
+    def people_in_groups(self, groups):
+        names = tuple(x.replace('&','&&') for x in groups)
+        territories = tuple(x for x in session['access'])
+        sql = """
+            select personid, name, email, home_phone, mobile_phone from person 
+            where personid in 
+                (select personid from membership m 
+                    inner join groups g on m.groupsid=g.groupsid 
+                    where g.name in %s)
+            and territory in %s
+        """
+        people = []
+        self.cursor.execute(sql, (names,territories,))
+        rows = self.cursor.fetchall()
+
+        if not rows:
+            return []
+       
+        for r in rows:
+            people.append( dict(r) )
+                   
+        return people
+
+
     def membership_update(self, personid, action, membership):
         """
         Update the membership for a person.

@@ -22,6 +22,9 @@
         $( "#r-people" ).click( function() {
             document.location.href = '/people/';          
         });
+        $( "#r-contact" ).click( function() {
+            document.location.href = '/contact/';          
+        });
         $( "#r-settings" ).click( function() {
             document.location.href = '/settings/';
         });        
@@ -47,6 +50,9 @@
             <span class="cell-left">   
                   <div id="radio" class="menu-top">
                     <input type="radio" id="r-people" name="radio" /><label for="r-people">People</label>
+                    {% if session.role=='Admin' or session.access %}
+                    <input type="radio" id="r-contact" name="radio" /><label for="r-contact">Contact</label>
+                    {% endif %}
                     {% if session.role=='Admin' %}
                     <input type="radio" id="r-admin" name="radio" /><label for="r-admin">User Accounts</label>
                     {% endif %}

@@ -192,6 +192,21 @@ def accounts_new(person_id=None):
     return render_template('admin_new.html', env=env, row=p, form=form, error=error) 
 
 
+@app.route("/contact/", methods=['GET'])
+def contact():
+    if not is_authenticated():
+        flash('Please login to access the Portal')
+        return redirect(url_for('index'))
+
+    if session['role'] == 'Admin':
+        user = User()
+        groups = [x['name'].replace('&&','&') for x in user.groupsall()]
+    else:
+        groups = session['groups']
+
+    return render_template('contact.html', env=env, groups=groups)
+
+
 def is_authenticated():
     return 'username' in session
 

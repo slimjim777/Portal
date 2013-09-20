@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">Contact</h2>
+
+<div id="accordion1">
+  <h3>Select the Groups to be Contacted</h3>
+
+  <div id="c-groups">
+      {% for g in groups %}
+          <button onclick="toggleServing(this)">{{ g }}</button>
+      {% endfor %}
+  </div>
+</div>
+
+<br />
+
+<div id="accordion">
+  <h3>Email People</h3>
+
+  <div id="c-email-container">
+    <span class="label">Email addresses of the people in the selected groups. Copy and paste the list into the 'BCC' field of your Email program.</span>
+    <span id="c-email"></span>
+  </div>
+
+
+  <h3>People in Group</h3>
+
+  <div id="c-people">
+  </div>
+</div>
+
+<script>
+    var groups = [];
+    $( document ).ready(function() {
+        // Select the page in the radio button
+        $( "#r-contact" )[0].checked = true;
+        $( "#radio" ).buttonset("refresh");
+    });
+    
+    function toggleServing(el) {
+        var groupName = $(el).text();
+        var className = 'ui-corner-all ui-state-active';
+        
+        if (!$(el).attr('class')) {
+            $(el).attr('class', className);
+            groups.push( groupName );
+        } else {
+            $(el).attr('class', '');
+            
+            groups = $.grep(groups, function(value) {
+                return value != groupName;
+            });
+        }
+        
+        // Search for the list of people in those groups
+        var postdata = {
+            groups: groups
+        };
+
+        var p = $('#c-people');
+        p.empty();
+        $( "#progressbar" ).show();
+        
+        var request = $.ajax({
+          type: 'POST',
+          url: '/rest/v1.0/person/groups',
+          data: JSON.stringify(postdata),
+          contentType:"application/json",
+          dataType: "json",
+          success: function(data) {
+              var emails = [];
+              var table = '<p>Select the person</p>' +
+                            '<table class="grid"><tr><th>Name</th><th>Email</th><th>Home Phone</th><th>Mobile Phone</th></tr>';
+              for (dd in data.result) {
+                  var d = data.result[dd];
+                  table += '<tr><td><a id="c-' + d.personid +'" href="/people/'+ d.personid +'">' + d.name + '</a></td>' +
+                          '<td>' + d.email + '</td><td>' + d.home_phone + '</td><td>' + d.mobile_phone + '</td></tr>';
+                  if (d.email) {
+                    emails.push( '\"' + d.name + ' \<' + d.email + '\>\"' );
+                  }
+              }
+              table += '</table>';
+              p.append(table);
+              $('#c-email').text(emails.join(', '));
+            
+              $('#accordion').accordion('refresh');
+              $( "#progressbar" ).hide();
+          }
+        });
+    }
+    
+    
+</script>
+
+{% endblock %}
