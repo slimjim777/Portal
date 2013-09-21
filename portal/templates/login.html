@@ -62,8 +62,8 @@
                 if (data.response) {
                     document.location.href = '/';
                 } else {
-                    if (response.message) {
-                        message.text( response.message );
+                    if (data.message) {
+                        message.text( data.message );
                     } else {
                         message.text('Error resetting the password. Please check the Username.');
                     }
