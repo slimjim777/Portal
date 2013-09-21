@@ -182,20 +182,18 @@ def membership():
     if ('membership' not in request.json):
         return jsonify({ 'response':'Failed', 'error':"The 'membership' must be supplied." })    
 
+    # Update the membership in the database
     person = Person()
     response = person.membership_update(request.json['personid'], request.json['action'], request.json['membership'])
 
+    # Update the membership in CRM
     crm = CRMPerson()
-    app.logger.debug(request.json['action'])
     if request.json['action'] == 'add':
         add_action = True
     else:
-        add_action = False
-    
+        add_action = False    
     crm.crm_login()
     response = crm.person_membership(request.json['personid'], request.json['membership'], add_action)
-
-
 
     return jsonify(response)
 

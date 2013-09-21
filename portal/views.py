@@ -1,5 +1,5 @@
 from flask import render_template
-from flask import request, redirect, url_for, flash, session
+from flask import request, redirect, url_for, flash, session, abort
 
 from portal.form.login import LoginForm
 from portal.form.person import UserAccountForm, UserResetPasswordForm
@@ -141,6 +141,10 @@ def accounts_list():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
 
+    # Check permissions
+    if not is_admin():
+        abort(403)
+
     user = User()
     u = user.getall()
     return render_template('admin_list.html', env=env, rows=u)
@@ -151,6 +155,10 @@ def accounts(person_id):
     if not is_authenticated():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
+
+    # Check permissions
+    if not is_admin():
+        abort(403)
 
     user = User()
     u = user.details(personid=person_id)
@@ -165,6 +173,10 @@ def accounts_new(person_id=None):
     if not is_authenticated():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
+
+    # Check permissions
+    if not is_admin():
+        abort(403)
     
     p = None 
     form = UserAccountForm(request.form)
@@ -198,6 +210,10 @@ def contact():
         flash('Please login to access the Portal')
         return redirect(url_for('index'))
 
+    # Check permissions
+    if not is_member():
+        abort(403)
+
     if session['role'] == 'Admin':
         user = User()
         groups = [x['name'].replace('&&','&') for x in user.groupsall()]
@@ -209,4 +225,11 @@ def contact():
 
 def is_authenticated():
     return 'username' in session
+
+def is_admin():
+    return session['role']=='Admin'
+
+def is_member():
+    return session['role']=='Admin' or len(session['groups'])>0
+
 
