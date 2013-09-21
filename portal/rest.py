@@ -1,6 +1,6 @@
 from flask import request, redirect, url_for, session, abort, jsonify, flash
 from portal import app
-from portal.model.models import User, Event, Person
+from portal.model.models import User, Event, Person, CRMPerson
 from portal.views import is_authenticated
 
 @app.route("/rest/v1.0/login", methods=['POST'])
@@ -116,7 +116,7 @@ def person_groups():
     rows = person.people_in_groups(groups)
     
     return jsonify(result=rows)
-
+    
 
 @app.route("/rest/v1.0/territory", methods=['POST'])
 def territory():
@@ -184,6 +184,19 @@ def membership():
 
     person = Person()
     response = person.membership_update(request.json['personid'], request.json['action'], request.json['membership'])
+
+    crm = CRMPerson()
+    app.logger.debug(request.json['action'])
+    if request.json['action'] == 'add':
+        add_action = True
+    else:
+        add_action = False
+    
+    crm.crm_login()
+    response = crm.person_membership(request.json['personid'], request.json['membership'], add_action)
+
+
+
     return jsonify(response)
 
 

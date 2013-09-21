@@ -1152,7 +1152,50 @@ class CRMPerson(SageCRMWrapper):
             oppo.opened = oppo_opened
             oppo.targetclose = oppo_targetclose
             self.connection.client.service.add("opportunity", [oppo])
+   
+    
+    def person_membership(self, personid, group_name, add_action=True):
+        """
+        Add or remove a 'team-serving' membership for a person.
+        """
+        # Get the current memberships for the Person
+        where = "pers_personid =%s" % personid     
+        person_list = self.connection.client.service.query(where, "Person")
+        if 'records' not in person_list:
+            return {'response':'Failed', 'message':'Cannot find person with the given ID'}
+        
+        person = person_list.records[0]        
+        if getattr(person, 'c_teamserving', None):
+            team_serving = person.c_teamserving.records
+        else:
+            # No memberships for the person
+            team_serving = []
+                
+        # Add/remove the group if it's there
+        if add_action:
+            # Add the group if it is not there
+            if group_name not in team_serving:
+                team_serving.append( group_name )
+                p = self.connection.client.factory.create("person")
+                p.personid = personid
+                p.c_teamserving = self.connection.client.factory.create("multiselectfield")
+                p.c_teamserving.multiselectfieldname = 'c_teamserving'
+                p.c_teamserving.records = team_serving
+                result = self.connection.client.service.update("person", [p])
+        else:
+            # Remove the group if it is there
+            if group_name in team_serving:
+                team_serving.remove(group_name)
+                p = self.connection.client.factory.create("person")
+                p.personid = personid
+                p.c_teamserving = self.connection.client.factory.create("multiselectfield")
+                p.c_teamserving.multiselectfieldname = 'c_teamserving'
+                p.c_teamserving.records = team_serving
+                result = self.connection.client.service.update("person", [p])
             
+        return {'response':'Success'}
+        
+ 
  
     def _opportunity_defaults(self):
         oppo = self.connection.client.factory.create("opportunity")
