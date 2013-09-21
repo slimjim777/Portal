@@ -3,6 +3,7 @@ from portal.model.sagecrm import Connection
 from flask import session
 from flask import render_template
 from portal import app
+import re
 import psycopg2
 import psycopg2.extras
 import os, datetime, binascii
@@ -208,18 +209,21 @@ class User(object):
         """
         Check that the entered username is correct and update the password.
         """
+        if not self.check_password_complexity(password):
+            return {'response': False, 'message':'The password must be at least 6 characters and contain lowercase, uppercase letters and numbers'}
+        
         sql = 'select * from visitor where personid=%s and username=%s'
         self.cursor.execute(sql, (personid, username.lower(),))
         row = self.cursor.fetchone()
         if not row:
-            return {'result': False, 'message':'The username is invalid'}
+            return {'response': False, 'message':'The username is invalid'}
         
         # Entered username is correct, update the password
         sql = 'update visitor set password=%s where personid=%s'
         self.cursor.execute(sql, (self._hashed(password),personid,))
         self.sqlconn.commit()
         
-        return {'result': True}
+        return {'response': True}
         
     def reset_validate(self, personid, reset_code):
         """
@@ -278,6 +282,13 @@ class User(object):
         self.cursor.execute(sql, params)
         self.sqlconn.commit()
         return {'response':'Success'}
+        
+    def check_password_complexity(self, password):
+		prog = re.compile('^.*(?=.{6,})(?=.*[a-z])(?=.*[A-Z])(?=.*[\d\W])(?=.*[0-9]).*$')
+		if re.match(prog, password):
+		    return True
+		else:
+		    return False
         
         
 class SageCRMWrapper(object):
@@ -1195,7 +1206,6 @@ class CRMPerson(SageCRMWrapper):
             
         return {'response':'Success'}
         
- 
  
     def _opportunity_defaults(self):
         oppo = self.connection.client.factory.create("opportunity")

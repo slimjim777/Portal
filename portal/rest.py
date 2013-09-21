@@ -278,9 +278,9 @@ def save_password():
     if 'personid' in request.json and 'username' in request.json and 'password' in request.json:
         user = User()
         response = user.save_password(request.json['personid'], request.json['username'], request.json['password'])
-        if response:
+        if response['response']:
             flash("Password changed successfully")
-        return jsonify({'response':response})
+        return jsonify(response)
     else:
         return jsonify({'response':False, 'message':'Username must be supplied'})
 
