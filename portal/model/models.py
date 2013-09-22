@@ -384,7 +384,8 @@ class Person(SageCRMWrapper):
             firstname=%(firstname)s, gender=%(gender)s,
             marital_status=%(marital_status)s, lifegroup=%(lifegroup)s, address1=%(address1)s,
             address2=%(address2)s, city=%(city)s, postcode=%(postcode)s, country=%(country)s,
-            home_phone=%(home_phone)s, mobile_phone=%(mobile_phone)s, email=%(email)s
+            home_phone=%(home_phone)s, mobile_phone=%(mobile_phone)s, email=%(email)s,
+            baptised=%(baptised)s, salvation=%(salvation)s 
             WHERE personid=%(personid)s
         """
         self.cursor.execute(sql_update, record)
@@ -399,7 +400,8 @@ class Person(SageCRMWrapper):
                 %(kids_group)s,%(kids_team)s,%(school_year)s,%(dob)s,
                 %(medical_info)s,%(medical_notes)s,%(territory)s,%(firstname)s,%(gender)s,
                 %(marital_status)s,%(lifegroup)s,%(address1)s,%(address2)s,%(city)s,
-                %(postcode)s,%(country)s,%(home_phone)s,%(mobile_phone)s,%(email)s
+                %(postcode)s,%(country)s,%(home_phone)s,%(mobile_phone)s,%(email)s, 
+                %(baptised)s,%(salvation)s
                 )"""
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
@@ -1035,7 +1037,17 @@ class CRMPerson(SageCRMWrapper):
                         home_phone = getattr(ph,'countrycode','') + getattr(ph,'areacode','') + getattr(ph,'number','')
                     elif ph.type=='Mobile':
                         mobile_phone = getattr(ph,'countrycode','') + getattr(ph,'areacode','') + getattr(ph,'number','')
-        
+
+            # Convert some date fields to Boolean
+            if getattr(p, 'c_baptism', None):
+                baptised = True
+            else:
+                baptised = False
+            if getattr(p, 'c_firsttimecommitment', None):
+                salvation = True
+            else:
+                salvation = False
+                
             record = {
                 'personid': p.personid,
                 'name': u'%s %s' % (p.firstname, p.lastname),
@@ -1062,6 +1074,8 @@ class CRMPerson(SageCRMWrapper):
                 'mobile_phone': mobile_phone,
                 'email': getattr(p, 'emailaddress',''),
                 'team_serving': team_serving,
+                'baptised': baptised,
+                'salvation': salvation,
             }
             people.append(record)
         return people    
