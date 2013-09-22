@@ -6,7 +6,7 @@ from portal.form.person import UserAccountForm, UserResetPasswordForm
 from portal import app
 from portal.model.models import User
 from portal.model.models import Person
-import os
+import os, time
 import gevent
 
 
@@ -31,6 +31,7 @@ def index():
             session['username'] = u['username']
             session['access'] = u['access'].split(',')
             session['role'] = u['role']
+            session['login_time'] = time.time()
             
             # Set the team-serving groups this person can update
             groups = user.groups(u['personid'])
@@ -224,12 +225,21 @@ def contact():
 
 
 def is_authenticated():
-    return 'username' in session
+    if 'username' not in session:
+        return False
+        
+    # Expire sessions greater than 20 hours
+    if time.time() - session.get('login_time',0) > 72000:
+        session.clear()
+        flash("Your session has expired. Please login again.")
+        return redirect(url_for('index'))
+    else:
+        return True
 
 def is_admin():
-    return session['role']=='Admin'
+    return session.get('role')=='Admin'
 
 def is_member():
-    return session['role']=='Admin' or len(session['groups'])>0
+    return session.get('role')=='Admin' or len(session.get('groups',[]))>0
 
 
