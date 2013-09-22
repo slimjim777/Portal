@@ -82,6 +82,7 @@ class User(object):
         sql = """
             select * from visitor v
             inner join person p on p.personid=v.personid
+            order by p.name
         """
         self.cursor.execute(sql)
         return self.cursor.fetchall()
@@ -109,7 +110,7 @@ class User(object):
     def groupsall(self):
         # Get the user groups
         sql = """
-            select * from groups
+            select * from groups order by name
         """        
         self.cursor.execute(sql)
         return self.cursor.fetchall()
