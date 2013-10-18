@@ -65,11 +65,11 @@ def reset_password(reset_code, personid):
         # Save the changed password
         if form.password1.data==form.password2.data:
             changed = user.save_password(personid, form.username.data, form.password1.data)
-            if changed['result']:
+            if changed.get('response'):
                 flash('Password changed successfully.')
                 return redirect(url_for('index'))
             else:
-                error = changed['message']
+                error = changed.get('message','An error occurred when resetting your password')
     
     return render_template('reset_password.html', env=env, row=row, form=form, error=error)
 
