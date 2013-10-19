@@ -1,4 +1,5 @@
 Flask==0.10.1
+Flask-SSLify==0.1.4
 Jinja2==2.7.1
 MarkupSafe==0.18
 WTForms==1.0.4
