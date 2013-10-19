@@ -513,8 +513,18 @@ class Person(SageCRMWrapper):
             self.sqlconn.commit()
             
         return True                       
+
+    def groups_sync_deletion(self, group_ids):
+        """
+        Use the list of current group Ids to remove extra ones in the portal database.
+        This needs to be done to sync deletions.
+        """
+        groups = tuple(x for x in group_ids)
+        sql = "delete from groups where groupsid not in %s"
+        self.cursor.execute(sql, (groups,))
+        self.sqlconn.commit()        
         
-        
+            
     def family(self, family_number, event_id):
         """
         Get the check to see if any children are signed-in for this tag using the local database.
@@ -1083,10 +1093,11 @@ class CRMPerson(SageCRMWrapper):
 
 
     def team_serving_options(self, from_date):
-        # Query the CRM system
+        # Query the CRM system and get all current team-serving groups
         if not from_date:
             from_date = '1980-01-01 00:00:00'
-        where = "capt_family='pers_c_teamserving' and capt_updateddate>='%s'" % from_date
+        where = "capt_family='pers_c_teamserving'"
+        #where = "capt_family='pers_c_teamserving' and capt_updateddate>='%s'" % from_date
         option_list = self.connection.client.service.query(where, "Custom_Captions")
         if 'records' not in option_list:
             return []

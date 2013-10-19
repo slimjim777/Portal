@@ -163,8 +163,13 @@ class SyncCRM(object):
         
         # Upsert the records into the Database
         db = Person()
+        group_ids = []
         for r in records:
             db.groups_upsert(r)
+            group_ids.append(r['groupsid'])
+            
+        # Remove groups that are not in CRM
+        db.groups_sync_deletion(group_ids)
 
         # Update the last sync date
         self.update_lastsync('groups', sync_start)
