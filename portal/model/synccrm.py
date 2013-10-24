@@ -161,15 +161,20 @@ class SyncCRM(object):
         # Get the updated team-serving options
         records = self.crm.team_serving_options(from_date)
         
-        # Upsert the records into the Database
+        app.logger.debug(records)
+                
+        # Store the list of group Ids
         db = Person()
         group_ids = []
         for r in records:
-            db.groups_upsert(r)
             group_ids.append(r['groupsid'])
             
         # Remove groups that are not in CRM
         db.groups_sync_deletion(group_ids)
+
+        # Upsert the records into the Database
+        for r in records:
+            db.groups_upsert(r)
 
         # Update the last sync date
         self.update_lastsync('groups', sync_start)

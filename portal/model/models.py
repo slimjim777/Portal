@@ -711,7 +711,7 @@ class Person(SageCRMWrapper):
         """
         # Get the groups the person is in
         sql = """
-            select g.name from membership m 
+            select g.name, g.code from membership m 
             inner join groups g on m.groupsid=g.groupsid 
             where personid=%s 
             order by g.name
@@ -724,7 +724,7 @@ class Person(SageCRMWrapper):
 
         # Get the groups the person is not in
         sql = """
-            select g.name from groups g 
+            select g.name, g.code from groups g 
             where g.groupsid not in 
              (select m.groupsid from membership m where m.groupsid=g.groupsid 
               and m.personid=%s )
@@ -1207,7 +1207,14 @@ class CRMPerson(SageCRMWrapper):
         else:
             # No memberships for the person
             team_serving = []
-                
+        
+        # Check that the group still exists in SageCRM
+        # ...have to do this or web services will create spurious groups
+        where = "capt_family='pers_c_teamserving' and convert(nvarchar(max),capt_uk)='%s'" % group_name
+        option_list = self.connection.client.service.query(where, "Custom_Captions")
+        if 'records' not in option_list:
+            return {'response':'Failed', 'message':'This group has been deleted from the CRM system'}        
+        
         # Add/remove the group if it's there
         if add_action:
             # Add the group if it is not there
