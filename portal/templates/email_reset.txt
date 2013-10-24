@@ -2,7 +2,7 @@
 To reset or choose a password to the Lifechurch Portal, please click on the link below.
 The link will expire in 24 hours, but you can always initiate another reset at the website.
 
-Reset Password: http://portal.lifechurch.eu/reset/{{ reset_code }}/{{ personid }}
+Reset Password: https://lifechurchuk.herokuapp.com/reset/{{ reset_code }}/{{ personid }}
 
 Note: you will need to know your portal Username. You should have received this in 
 the welcome email. Please contact the office if you cannot remember the Username.
