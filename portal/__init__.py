@@ -3,9 +3,13 @@ from flask_sslify import SSLify
 import os
 
 app = Flask(__name__)
-sslify = SSLify(app, permanent=True)
 
-app.debug = False
+if not os.environ.get("PORTAL_DEBUG"):
+    sslify = SSLify(app, permanent=True)
+    app.debug = False
+else:
+    app.debug = True
+
 app.secret_key = os.environ["SECRET_KEY"]
 
 import portal.views

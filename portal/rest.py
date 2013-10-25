@@ -1,7 +1,7 @@
 from flask import request, redirect, url_for, session, abort, jsonify, flash
 from portal import app
 from portal.model.models import User, Event, Person, CRMPerson
-from portal.views import is_authenticated
+from portal.views import is_authenticated, is_admin
 
 @app.route("/rest/v1.0/login", methods=['POST'])
 def login():
@@ -138,6 +138,31 @@ def territory():
 
     user = User()
     response = user.territory_update(request.json['personid'], request.json['action'], request.json['territory'])
+    return jsonify(response)
+
+
+@app.route("/rest/v1.0/role", methods=['POST'])
+def role():
+    """
+    Set the role for an individual.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Check permissions
+    if not is_admin():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+    if ('personid' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+    if ('role' not in request.json):
+        return jsonify({ 'response':'Failed', 'error':"The 'role' must be supplied." })    
+
+    user = User()
+    response = user.role_update(request.json['personid'], request.json['role'])
     return jsonify(response)
 
 

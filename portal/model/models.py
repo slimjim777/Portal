@@ -151,6 +151,16 @@ class User(object):
         self.sqlconn.commit()
         return {'response':'Success'}
 
+    def role_update(self, personid, role):
+        """
+        Update the role for a user.
+        """
+        # Save the update territory list
+        sql = 'update visitor set role=%s where personid=%s'
+        self.cursor.execute(sql, (role,personid,))
+        self.sqlconn.commit()
+        return {'response':'Success'}
+
     def new(self, rec):
         """
         Create the user account.

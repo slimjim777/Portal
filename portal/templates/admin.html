@@ -71,6 +71,20 @@
            </div>
            <div class="cell-data">
                <div class="subcell">
+                    <div class="subcell-label">Role</div>
+                    <div class="subcell-data">
+                        {% if row.role == 'Standard' %}
+                        <button id="roleStandard" class="ui-corner-all ui-state-active">Standard</button>
+                        <button id="roleAdmin" onclick="toggleRole(this)">Admin</button>
+                        {% else %}
+                        <button id="roleStandard" onclick="toggleRole(this)">Standard</button>
+                        <button id="roleAdmin" class="ui-corner-all ui-state-active">Admin</button>
+                        {% endif %}
+                    </div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
                     <div class="subcell-label">Last Login</div>
                     <div class="subcell-data">{{ row.last_login }}</div>
                </div>
@@ -357,6 +371,39 @@
         });  
     }
     
+    function toggleRole($el) {
+        // Which role got clicked?
+        // (only the inactive role is clickable, so this is being made active)
+        var role = $($el).text();        
+        var postdata = {
+            personid:{{ row.personid }},
+            role: role
+        };
+        $( "#progressbar" ).show();
+
+        var request = $.ajax({
+          type: 'POST',
+          url: '/rest/v1.0/role',
+          data: JSON.stringify(postdata),
+          contentType:"application/json",
+          dataType: "json",
+          success: function(data) {
+            if(data.response=='Failed') {
+                console.log(data.error);
+                var $message = $('#messages');
+                $message.text(data.error);
+                $message.attr('class', 'ui-state-error ui-corner-all');
+                $message.show().fadeOut(2000);
+                $($el).attr('class', '');
+            } else {
+                document.location.href = '/accounts/{{ row.personid }}';
+                $( "#progressbar" ).hide();
+            }
+          }
+        });  
+        
+        
+    }
         
     function showDialog() {
         $('#d-message').hide();
