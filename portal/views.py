@@ -11,8 +11,8 @@ import gevent
 
 
 env = {
-    'TINFOIL_NAME':os.environ['TINFOIL_NAME'],
-    'TINFOIL_CONTENT':os.environ['TINFOIL_CONTENT'],
+    'TINFOIL_NAME':os.environ.get('TINFOIL_NAME', 'tinfoil_name'),
+    'TINFOIL_CONTENT':os.environ.get('TINFOIL_CONTENT', 'tinfoil_content'),
 }
 
 @app.route("/", methods=['GET', 'POST'])
