@@ -1,7 +1,7 @@
 #!/usr/bin/env python
+from portal.model.crmperson import CRMPerson
+from portal.model.dbperson import Person
 from portal.model.synccrm import SyncCRM
-from portal.model.models import CRMPerson
-from portal.model.models import Person
 
 sync = SyncCRM()
 sync.run_sync()

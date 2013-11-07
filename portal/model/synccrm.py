@@ -1,7 +1,8 @@
+from portal.model.crmperson import CRMPerson
+from portal.model.dbperson import Person
 import psycopg2
 import psycopg2.extras
 from portal.model.models import Database
-from portal.model.models import CRMPerson, Person
 import gevent
 import time, random
 from portal import app
@@ -141,8 +142,12 @@ class SyncCRM(object):
         # Store the date/time
         sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
 
+        # Get the registrations from the database
+        db = Person()
+        rows = db.registrations_sync(from_date)
+
         # Push the registrations to CRM
-        self.crm.registrations(from_date)
+        self.crm.registrations_sync(rows)
         
         # Update the last sync date
         self.update_lastsync('registration', sync_start)

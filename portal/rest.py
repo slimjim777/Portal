@@ -1,6 +1,9 @@
 from flask import request, redirect, url_for, session, abort, jsonify, flash
 from portal import app
-from portal.model.models import User, Event, Person, CRMPerson
+from portal.model.crmevent import Event
+from portal.model.crmperson import CRMPerson
+from portal.model.dbperson import Person
+from portal.model.dbuser import User
 from portal.views import is_authenticated, is_admin
 
 @app.route("/rest/v1.0/login", methods=['POST'])

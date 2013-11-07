@@ -4,10 +4,9 @@ from flask import request, redirect, url_for, flash, session, abort
 from portal.form.login import LoginForm
 from portal.form.person import UserAccountForm, UserResetPasswordForm
 from portal import app
-from portal.model.models import User
-from portal.model.models import Person
+from portal.model.dbperson import Person
+from portal.model.dbuser import User
 import os, time
-import gevent
 
 
 env = {
@@ -217,7 +216,7 @@ def contact():
 
     if session['role'] == 'Admin':
         user = User()
-        groups = [x['name'].replace('&&','&') for x in user.groupsall()]
+        groups = [x['name'].replace('&&','&') for x in user.groups_all()]
     else:
         groups = session['groups']
 
