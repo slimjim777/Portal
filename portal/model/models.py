@@ -453,7 +453,8 @@ class Person(SageCRMWrapper):
                 (select personid from membership m 
                     inner join groups g on m.groupsid=g.groupsid 
                     where g.name in %s)
-            and territory in %s
+            and territory in %s 
+            order by name
         """
         people = []
         self.cursor.execute(sql, (names,territories,))
