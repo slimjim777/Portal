@@ -71,7 +71,7 @@ class User(Database):
     def groups(self, personid):
         # Get the user groups
         sql = """
-            select g.* from groups g
+            select g.*, ug.contact_only from groups g
             inner join user_group ug on ug.groupsid=g.groupsid
             where ug.personid = %s
             order by g.name
@@ -266,8 +266,15 @@ class User(Database):
             """
         elif action == 'add':
             sql = """
-                insert into user_group (personid, groupsid)
-                    (select %(personid)s,groupsid from groups where name=%(name)s)
+                insert into user_group (personid, groupsid, contact_only)
+                    (select %(personid)s,groupsid,false from groups where name=%(name)s)
+            """
+        elif action == 'update':
+            sql = """
+                update user_group set contact_only=true 
+                    where personid=%(personid)s 
+                    and groupsid in 
+                          (select groupsid from groups where name=%(name)s)
             """
         else:
             return {'response':'Failed', 'error':'Invalid action'}

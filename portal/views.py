@@ -34,7 +34,9 @@ def index():
             
             # Set the team-serving groups this person can update
             groups = user.groups(u['personid'])
+
             session['groups'] = [x['name'] for x in groups]
+            session['groups_contact'] = [x['name'] for x in groups if x['contact_only']]
             return redirect(url_for('people'))
         else:
             form.username.errors.append('Username or password is incorrect.')
