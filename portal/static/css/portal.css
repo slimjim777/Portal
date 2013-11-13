@@ -41,9 +41,14 @@ span.group.ui-state-active {
     font-size: 0.9em;    
 }
 
+/*
 label, input {
   display: block;
   
+} */
+
+#radio input {
+    display: inline;
 }
 
 .ui-state-error {
@@ -247,10 +252,6 @@ nav#main .searchform .icon-search {
 .subcell-data {
     display: table-cell;
     padding-bottom: 4px;
-}
-
-.menu-top input {
-    display: inline;
 }
 
 .ui-widget {
