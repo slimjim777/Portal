@@ -460,7 +460,7 @@ class Person(Database):
             f = self._family(p['family_tag'])
             record.update({
                 'parent': f.get('name', ''),
-                'dob': p['dob'] and p['dob'].strftime('%d/%m%/%Y') or '',
+                'dob': p['dob'] and p['dob'].strftime('%d/%m/%Y') or '',
                 'group': p['kids_group'] or '',
                 'team': p['kids_team'] or '',
                 'school_year': p['school_year'],
