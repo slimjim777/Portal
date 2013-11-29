@@ -5,12 +5,19 @@ from portal.model.crmperson import CRMPerson
 from portal.model.dbperson import Person
 from portal.model.dbuser import User
 from portal.views import is_authenticated, is_admin
+import time
+
 
 @app.route("/rest/v1.0/login", methods=['POST'])
 def login():
     # Validate the JSON message
     if not request.json:
         abort(400)
+
+    login_action()
+    return jsonify({ 'response':'Success' })
+
+def login_action():
     if ('username' not in request.json) or ('password' not in request.json):
         return jsonify({ 'response':'Failed', 'error':"Both 'username' and 'password' must be supplied." })
 
@@ -18,17 +25,24 @@ def login():
     u = user.login(request.json['username'], request.json['password'])
     if u:        
         session['username'] = u['username']
+        session['access'] = u['access'].split(',')
+        session['role'] = u['role']
+        session['login_time'] = time.time()
+        
+        # Set the team-serving groups this person can update
+        groups = user.groups(u['personid'])
+
+        session['groups'] = [x['name'] for x in groups]
+        session['groups_contact'] = [x['name'] for x in groups if x['contact_only']]
     else:
         abort(403)
-       
-    return jsonify({ 'response':'Success' })
 
-
-@app.route("/rest/v1.0/events", methods=['GET'])
+@app.route("/rest/v1.0/events", methods=['POST'])
 def events():
     """
     Get the Events for Kids Work.
     """
+    login_action()
     if not is_authenticated():
         abort(403)
 
@@ -42,6 +56,7 @@ def family():
     """
     Scanning of the Family tag.
     """
+    login_action()
     if not is_authenticated():
         abort(403)
 
@@ -61,6 +76,7 @@ def person():
     """
     Scanning of the Person tag.
     """
+    login_action()
     if not is_authenticated():
         abort(403)
 
@@ -78,6 +94,7 @@ def person():
 @app.route("/rest/v1.0/person/find", methods=['POST'])
 def person_find():
     """
+    Called by the portal.
     Find people using name.
     """
     if not is_authenticated():
@@ -102,6 +119,7 @@ def person_find():
 @app.route("/rest/v1.0/person/groups", methods=['POST'])
 def person_groups():
     """
+    Called by the portal.
     Find the people in a particular 'team-serving' group.
     """
     if not is_authenticated():
@@ -124,6 +142,7 @@ def person_groups():
 @app.route("/rest/v1.0/territory", methods=['POST'])
 def territory():
     """
+    Called by the portal.    
     Add/remove territory from individual.
     """
     if not is_authenticated():
@@ -147,6 +166,7 @@ def territory():
 @app.route("/rest/v1.0/role", methods=['POST'])
 def role():
     """
+    Called by the portal.    
     Set the role for an individual.
     """
     if not is_authenticated():
@@ -172,6 +192,7 @@ def role():
 @app.route("/rest/v1.0/user_group", methods=['POST'])
 def user_group():
     """
+    Called by the portal.
     Add/remove team-serving group from user.
     """
     if not is_authenticated():
@@ -195,6 +216,7 @@ def user_group():
 @app.route("/rest/v1.0/membership", methods=['POST'])
 def membership():
     """
+    Called by the portal.    
     Add/remove group membership for an individual.
     """
     if not is_authenticated():
@@ -247,6 +269,7 @@ def registrations():
     """
     Get the list of people registered for the event.
     """
+    login_action()
     if not is_authenticated():
         abort(403)
 
@@ -266,6 +289,7 @@ def scan():
     """
     Get the details of the person/family for the tag.
     """
+    login_action()
     if not is_authenticated():
         abort(403)
 
@@ -283,6 +307,7 @@ def scan():
 @app.route("/rest/v1.0/reset", methods=['POST'])
 def reset_request():
     """
+    Called by the portal.    
     Initiate the password reset (from the login screen)
     """
     if 'username' in request.json:
@@ -298,6 +323,7 @@ def reset_request():
 @app.route("/rest/v1.0/save_password", methods=['POST'])
 def save_password():
     """
+    Called by the portal.
     Save the new password (from the user account screen)
     """
     if not is_authenticated():
@@ -313,6 +339,7 @@ def save_password():
         return jsonify({'response':False, 'message':'Username must be supplied'})
 
 def _register(action):
+    login_action()
     if not is_authenticated():
         abort(403)
 
