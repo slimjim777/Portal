@@ -403,6 +403,7 @@ class Person(Database):
                     'personid': c['personid'],
                     'tagnumber': c['tagnumber'],
                     'group': c['kids_group'],
+                    'school_year': c['school_year'],
                 }
                 children.append(child)
 
