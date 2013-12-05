@@ -144,7 +144,7 @@ class SyncCRM(object):
 
         # Get the registrations from the database
         db = Person()
-        rows = db.registrations_sync(from_date)
+        rows = db.registrations_sync()
 
         # Push the registrations to CRM
         self.crm.registrations_sync(rows)

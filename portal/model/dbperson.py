@@ -483,6 +483,7 @@ class Person(Database):
             inner join family f on f.tagnumber=family_tag
             inner join person p on p.tagnumber=person_tag
             where event_date>=%s
+            order by event_date desc limit 500
         """
         self.cursor.execute(sql, (from_date,))
         rows = self.cursor.fetchall()
