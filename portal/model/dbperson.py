@@ -211,7 +211,6 @@ class Person(Database):
         signed_in = []
         signed_out = []
         for p in self.cursor:
-            print p
             person = {
                 'name': p['name'],
                 'personid': p['personid'],
@@ -363,15 +362,12 @@ class Person(Database):
         return {'team_serving': groups, 'team_serving_not': groups_not}
 
     def _register(self, family_number, people, event_id, stage, status):
-        print family_number, people, event_id, stage, status
-
         today = datetime.date.today().isoformat()
         for p in people:
             # Check if the registration (Opportunity) record exists
             sql = "select * from registration where person_tag=%s and family_tag=%s and eventid=%s and event_date=%s"
             self.cursor.execute(sql, (p, family_number, event_id, today,))
             row = self.cursor.fetchone()
-            print "---row", row
 
             if row:
                 # Update the existing record
@@ -460,13 +456,14 @@ class Person(Database):
         if details:
             f = self._family(p['family_tag'])
             record.update({
-                'parent': f.get('name', ''),
+                'parent': f.get('parent_name', ''),
                 'dob': p['dob'] and p['dob'].strftime('%d/%m/%Y') or '',
                 'group': p['kids_group'] or '',
                 'team': p['kids_team'] or '',
                 'school_year': p['school_year'],
                 'medical_info': medical_info,
                 'medical_notes': p['medical_notes'] or '',
+                'family_tag': p['family_tag'],
             })
         return record
 
