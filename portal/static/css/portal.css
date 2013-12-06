@@ -145,7 +145,7 @@ nav#main .searchform input:placeholder { /* 2 */
 	width: 1px;
 }
 
-#find_name {
+#find_name, #find_tag_c input, #find_tag_f input {
     font-size: 13px;
 }
 

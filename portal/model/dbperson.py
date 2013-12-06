@@ -91,16 +91,16 @@ class Person(Database):
 
         # Add the current memberships
         if len(group_names) > 0:
-            names = tuple(x.replace('&','&&') for x in group_names)
+            names = tuple(x.replace('&', '&&') for x in group_names)
             sql_insert = """
                 insert into membership (personid,groupsid)
                     select %s, groupsid from groups where name in %s
             """
-            self.cursor.execute(sql_insert, (personid,names,))
+            self.cursor.execute(sql_insert, (personid, names,))
             self.sqlconn.commit()
 
     def people_in_groups(self, groups):
-        names = tuple(x.replace('&','&&') for x in groups)
+        names = tuple(x.replace('&', '&&') for x in groups)
         territories = tuple(x for x in session['access'])
         sql = """
             select personid, name, email, home_phone, mobile_phone from person
@@ -112,7 +112,7 @@ class Person(Database):
             order by name
         """
         people = []
-        self.cursor.execute(sql, (names,territories,))
+        self.cursor.execute(sql, (names, territories,))
         rows = self.cursor.fetchall()
 
         if not rows:
@@ -129,7 +129,7 @@ class Person(Database):
         """
         params = {
             'personid': personid,
-            'name': membership.replace('&','&&'),
+            'name': membership.replace('&', '&&'),
         }
         if action == 'remove':
             sql = """
@@ -143,11 +143,11 @@ class Person(Database):
                     (select %(personid)s,groupsid from groups where name=%(name)s)
             """
         else:
-            return {'response':'Failed', 'error':'Invalid action'}
+            return {'response': 'Failed', 'error': 'Invalid action'}
 
         self.cursor.execute(sql, params)
         self.sqlconn.commit()
-        return {'response':'Success'}
+        return {'response': 'Success'}
 
     def groups_upsert(self, record):
         """
@@ -222,7 +222,7 @@ class Person(Database):
             elif p['status'] == 'Signed-Out':
                 signed_in.append(person)
 
-        return {'signed_in':signed_in, 'signed_out':signed_out}
+        return {'signed_in': signed_in, 'signed_out': signed_out}
 
     def family_tag(self, familyid):
         """
@@ -308,12 +308,28 @@ class Person(Database):
         order by name
         limit %s
         """
-        self.cursor.execute(sql, (search,ids,from_person,limit,))
+        self.cursor.execute(sql, (search, ids, from_person, limit,))
 
         rows = self.cursor.fetchall()
         if not rows:
             return []
 
+        return rows
+
+    def find_by_tag(self, tag, child=True):
+        """
+        Find people using the tag number.
+        """
+        sql = "select * from person where "
+        if child:
+            sql += "tagnumber=%s"
+        else:
+            sql += "family_tag=%s"
+
+        self.cursor.execute(sql, (tag,))
+        rows = self.cursor.fetchall()
+        if not rows:
+            return []
         return rows
 
     def get(self, personid):
@@ -342,7 +358,7 @@ class Person(Database):
         self.cursor.execute(sql, (personid,))
         groups = []
         for g in self.cursor.fetchall():
-            g['name'] = g['name'].replace('&&','&')
+            g['name'] = g['name'].replace('&&', '&')
             groups.append(dict(g))
 
         # Get the groups the person is not in
@@ -356,7 +372,7 @@ class Person(Database):
         self.cursor.execute(sql, (personid,))
         groups_not = []
         for g in self.cursor.fetchall():
-            g['name'] = g['name'].replace('&&','&')
+            g['name'] = g['name'].replace('&&', '&')
             groups_not.append(dict(g))
 
         return {'team_serving': groups, 'team_serving_not': groups_not}
@@ -379,7 +395,7 @@ class Person(Database):
                 self.cursor.execute(sql, (p, family_number, event_id, today, stage,))
                 self.sqlconn.commit()
 
-        return {"result":"success"}
+        return {"result": "success"}
 
     def _family(self, family_number):
         """
@@ -425,7 +441,7 @@ class Person(Database):
                     signed_in.append(self._person(person_id=reg.primarypersonid))
                 elif reg.stage == 'Signed-Out':
                     signed_out.append(self._person(person_id=reg.primarypersonid))
-        return {'signed_in':signed_in, 'signed_out':signed_out}
+        return {'signed_in': signed_in, 'signed_out': signed_out}
 
     def _person(self, person_id=None, tag_number=None, details=None):
         if person_id:

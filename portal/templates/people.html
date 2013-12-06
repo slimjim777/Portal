@@ -3,11 +3,24 @@
 
 <h2 class="heading">People</h2>
 
-<div>
-    <form method="POST" action="/people/" id="find_person">
-        <input type="text" name="search" value="" placeholder="Find Person" id="find_name" size="40" class="ui-corner-all" />
-    </form>
+<div class="row">
+    <div class="cell-left">
+        <form method="POST" action="/people/" id="find_person">
+            <input type="text" name="search" value="" placeholder="Find Person" id="find_name" size="40" class="ui-corner-all" />
+        </form>
+    </div>
+    {% if 'Kidswork' in session.access %}
+    <div class="cell-right">
+        <form method="POST" action="/people/tag" id="find_tag_c">
+            <input type="text" name="child" value="" placeholder="Find Child Tag Number" id="find_tag_child" size="40" class="ui-corner-all" />
+        </form>
+        <form method="POST" action="/people/tag" id="find_tag_f">
+            <input type="text" name="family" value="" placeholder="Find Family Tag Number" id="find_tag_family" size="40" class="ui-corner-all" />
+        </form>
+    </div>
+    {% endif %}
 </div>
+
 <br />
 
 <div id="accordion">
