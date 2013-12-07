@@ -32,7 +32,7 @@ def index():
             flash('Welcome %s!' % u['name'])
             session['username'] = u['username']
             session['access'] = u['access'].split(',')
-            session['rol`e'] = u['role']
+            session['role'] = u['role']
             session['login_time'] = time.time()
 
             # Set the team-serving groups this person can update
