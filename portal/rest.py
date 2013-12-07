@@ -1,6 +1,6 @@
-from flask import request, redirect, url_for, session, abort, jsonify, flash
+from flask import request, session, abort, jsonify, flash
 from portal import app
-from portal.model.crmevent import Event
+from portal.model.dbevent import Event
 from portal.model.crmperson import CRMPerson
 from portal.model.dbperson import Person
 from portal.model.dbuser import User
@@ -15,20 +15,21 @@ def login():
         abort(400)
 
     login_action()
-    return jsonify({ 'response':'Success' })
+    return jsonify({'response': 'Success'})
+
 
 def login_action():
     if ('username' not in request.json) or ('password' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"Both 'username' and 'password' must be supplied." })
+        return jsonify({'response': 'Failed', 'error': "Both 'username' and 'password' must be supplied."})
 
     user = User()
     u = user.login(request.json['username'], request.json['password'])
-    if u:        
+    if u:
         session['username'] = u['username']
         session['access'] = u['access'].split(',')
         session['role'] = u['role']
         session['login_time'] = time.time()
-        
+
         # Set the team-serving groups this person can update
         groups = user.groups(u['personid'])
 
@@ -36,6 +37,7 @@ def login_action():
         session['groups_contact'] = [x['name'] for x in groups if x['contact_only']]
     else:
         abort(403)
+
 
 @app.route("/rest/v1.0/events", methods=['POST'])
 def events():
@@ -48,8 +50,8 @@ def events():
 
     event = Event()
     event_list = event.get_events()
-    return jsonify( result=event_list )
-    
+    return jsonify(result=event_list)
+
 
 @app.route("/rest/v1.0/family", methods=['POST'])
 def family():
@@ -64,13 +66,13 @@ def family():
     if not request.json:
         abort(400)
     if ('family_number' not in request.json) or ('event_id' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"Both 'family_number' and 'event_id' must be supplied." })
-    
+        return jsonify({'response': 'Failed', 'error': "Both 'family_number' and 'event_id' must be supplied."})
+
     person = Person()
     result = person.family(request.json['family_number'], request.json['event_id'])
     return jsonify(result)
-    
-    
+
+
 @app.route("/rest/v1.0/person", methods=['POST'])
 def person():
     """
@@ -84,8 +86,8 @@ def person():
     if not request.json:
         abort(400)
     if ('tag_number' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The Person's 'tag_number' must be supplied." })
-    
+        return jsonify({'response': 'Failed', 'error': "The Person's 'tag_number' must be supplied."})
+
     person = Person()
     result = person.person(request.json['tag_number'], request.json.get('details'))
     return jsonify(result)
@@ -103,9 +105,9 @@ def person_find():
     # Validate the JSON message
     if not request.json:
         abort(400)
-    
+
     person = Person()
-    result = person.find(request.json.get('name',''))
+    result = person.find(request.json.get('name', ''))
     rows = []
     for r in result:
         rows.append({
@@ -128,21 +130,21 @@ def person_groups():
     # Validate the JSON message
     if not request.json:
         abort(400)
-        
-    groups = request.json.get('groups',[])
-    if len(groups)==0:
+
+    groups = request.json.get('groups', [])
+    if len(groups) == 0:
         return jsonify(result=[])
-    
+
     person = Person()
     rows = person.people_in_groups(groups)
-    
+
     return jsonify(result=rows)
-    
+
 
 @app.route("/rest/v1.0/territory", methods=['POST'])
 def territory():
     """
-    Called by the portal.    
+    Called by the portal.
     Add/remove territory from individual.
     """
     if not is_authenticated():
@@ -152,11 +154,11 @@ def territory():
     if not request.json:
         abort(400)
     if ('personid' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The Person's 'personid' must be supplied."})
     if ('action' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'action' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The 'action' must be supplied."})
     if ('territory' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'territory' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The 'territory' must be supplied."})
 
     user = User()
     response = user.territory_update(request.json['personid'], request.json['action'], request.json['territory'])
@@ -166,7 +168,7 @@ def territory():
 @app.route("/rest/v1.0/role", methods=['POST'])
 def role():
     """
-    Called by the portal.    
+    Called by the portal.
     Set the role for an individual.
     """
     if not is_authenticated():
@@ -180,9 +182,9 @@ def role():
     if not request.json:
         abort(400)
     if ('personid' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The Person's 'personid' must be supplied."})
     if ('role' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'role' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The 'role' must be supplied."})
 
     user = User()
     response = user.role_update(request.json['personid'], request.json['role'])
@@ -202,11 +204,11 @@ def user_group():
     if not request.json:
         abort(400)
     if ('personid' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The Person's 'personid' must be supplied."})
     if ('action' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'action' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The 'action' must be supplied."})
     if ('group' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'group' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The 'group' must be supplied."})
 
     user = User()
     response = user.user_group_update(request.json['personid'], request.json['action'], request.json['group'])
@@ -216,7 +218,7 @@ def user_group():
 @app.route("/rest/v1.0/membership", methods=['POST'])
 def membership():
     """
-    Called by the portal.    
+    Called by the portal.
     Add/remove group membership for an individual.
     """
     if not is_authenticated():
@@ -226,11 +228,11 @@ def membership():
     if not request.json:
         abort(400)
     if ('personid' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The Person's 'personid' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The Person's 'personid' must be supplied."})
     if ('action' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'action' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The 'action' must be supplied."})
     if ('membership' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'membership' must be supplied." })    
+        return jsonify({'response': 'Failed', 'error': "The 'membership' must be supplied."})
 
     # Update the membership in the database
     person = Person()
@@ -241,7 +243,7 @@ def membership():
     if request.json['action'] == 'add':
         add_action = True
     else:
-        add_action = False    
+        add_action = False
     crm.crm_login()
     response = crm.person_membership(request.json['personid'], request.json['membership'], add_action)
 
@@ -277,7 +279,7 @@ def registrations():
     if not request.json:
         abort(400)
     if ('event_id' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'event_id' must be supplied." })
+        return jsonify({'response': 'Failed', 'error': "The 'event_id' must be supplied."})
 
     person = Person()
     result = person.registrations(request.json['event_id'])
@@ -297,7 +299,7 @@ def scan():
     if not request.json:
         abort(400)
     if ('tag' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"The 'tag' must be supplied." })
+        return jsonify({'response': 'Failed', 'error': "The 'tag' must be supplied."})
 
     person = Person()
     result = person.scan(request.json['tag'])
@@ -307,7 +309,7 @@ def scan():
 @app.route("/rest/v1.0/reset", methods=['POST'])
 def reset_request():
     """
-    Called by the portal.    
+    Called by the portal.
     Initiate the password reset (from the login screen)
     """
     if 'username' in request.json:
@@ -315,9 +317,9 @@ def reset_request():
         response = user.reset(request.json['username'])
         if response:
             flash("Password reset Email has been sent for username '%s'" % request.json['username'])
-        return jsonify({'response':response})
+        return jsonify({'response': response})
     else:
-        return jsonify({'response':False, 'message':'Username must be supplied'})
+        return jsonify({'response': False, 'message': 'Username must be supplied'})
 
 
 @app.route("/rest/v1.0/save_password", methods=['POST'])
@@ -336,7 +338,8 @@ def save_password():
             flash("Password changed successfully")
         return jsonify(response)
     else:
-        return jsonify({'response':False, 'message':'Username must be supplied'})
+        return jsonify({'response': False, 'message': 'Username must be supplied'})
+
 
 def _register(action):
     login_action()
@@ -347,8 +350,8 @@ def _register(action):
     if not request.json:
         abort(400)
     if ('family_number' not in request.json) or ('people' not in request.json) or ('event_id' not in request.json):
-        return jsonify({ 'response':'Failed', 'error':"Both 'family_number', 'event_id' and 'people' list must be supplied." })
-    
+        return jsonify({'response': 'Failed', 'error': "Both 'family_number', 'event_id' and 'people' list must be supplied."})
+
     person = Person()
     if action == 'sign-in':
         result = person.sign_in(request.json['family_number'], request.json['people'], request.json['event_id'])
@@ -357,7 +360,3 @@ def _register(action):
     else:
         result = {'error': 'Action is not available: %s' % action}
     return jsonify(result)
-
-
-
-

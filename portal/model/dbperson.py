@@ -256,13 +256,20 @@ class Person(Database):
         """
         return self._register(family_number, people, event_id, 'Signed-Out', 'Won')
 
-    def registrations(self, event_id):
+    def registrations(self, event_id, today_only=True):
         """
         Get the registrations for the event from local database.
         """
         today = datetime.date.today().isoformat()
 
-        self.cursor.execute("select * from registration where eventid=%s and event_date=%s", (event_id, today,))
+        if today_only:
+            self.cursor.execute("select r.*,e.name \"event_name\" from registration r inner join event e on r.eventid=e.eventid where r.eventid=%s and event_date=%s", (event_id, today,))
+        else:
+            if event_id > 0:
+                self.cursor.execute("select r.*,e.name \"event_name\" from registration r inner join event e on r.eventid=e.eventid where r.eventid=%s order by event_date desc", (event_id,))
+            else:
+                self.cursor.execute("select r.*,e.name \"event_name\" from registration r inner join event e on r.eventid=e.eventid order by event_date desc")
+
         rows = self.cursor.fetchall()
 
         if not rows:
@@ -272,6 +279,8 @@ class Person(Database):
         for o in rows:
             record = {
                 'stage': o['status'],
+                'event_date': o['event_date'],
+                'event_name': o['event_name']
             }
 
             # Lookup the Person

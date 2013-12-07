@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">Kidswork</h2>
+
+<div id="accordion">
+	<h3>Events Registrations</h3>
+
+ 	<div>
+	  {% if not events %}
+		<p>No events found.</p>
+	  {% else %}
+	  	<form id="kids_events" action="/kidswork/" method="POST">
+	  		<select name="event_id" id="event_id" onchange="this.form.submit()">
+	  			{% for e in events %}
+	  			<option value="{{ e.event_id }}" {% if event_id==e.event_id %}selected{% endif %}>{{ e.name }}</option>
+	  			{% endfor %}
+	  		</select>
+	  	</form>
+
+	    <table class="grid">
+	    <tr>
+	        <th>Event Name</th><th>Date</th><th>Name</th><th>Tag Number</th><th>School Year</th><th>Parents</th><th>Stage</th>
+	    </tr>
+	    {% for r in registrations %}
+	    <tr>
+	    	<td>{{ r.event_name }}</td>
+	    	<td>{{ r.event_date }}</td>
+	    	<td><a href="/people/{{ r.personid }}">{{ r.name }}</a></td>
+	    	<td>{{ r.tagnumber }}</td>
+	    	<td>{{ r.school_year }}</td>
+	    	<td>{{ r.parent }}</td>
+	    	<td>{{ r.stage }}</td>
+	    </tr>
+	    {% endfor %}
+	    </table>
+	  {% endif %}
+   	</div>
+</div>
+
+<script>
+    $( document ).ready(function() {
+        // Select the page in the radio button
+        $( "#r-kidswork" )[0].checked = true;
+        $( "#radio" ).buttonset("refresh");
+    });
+</script>
+
+{% endblock %}

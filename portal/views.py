@@ -6,6 +6,7 @@ from portal.form.person import UserAccountForm, UserResetPasswordForm
 from portal import app
 from portal.model.dbperson import Person
 from portal.model.dbuser import User
+from portal.model.dbevent import Event
 import os
 import time
 
@@ -249,6 +250,28 @@ def contact():
         groups = session['groups']
 
     return render_template('contact.html', env=env, groups=groups)
+
+
+@app.route("/kidswork/", methods=['GET', 'POST'])
+def kidswork():
+    if not is_authenticated():
+        flash('Please login to access the Portal')
+        return redirect(url_for('index'))
+
+    # Get the list of events
+    events = [{'event_id': 0, 'name': 'All'}]
+    event = Event()
+    events.extend(event.get_events())
+
+    # Get the registrations for the selected event
+    if request.method == 'POST':
+        event_id = request.form.get('event_id', 0)
+    else:
+        event_id = 0
+    person = Person()
+    registrations = person.registrations(event_id, today_only=False)
+
+    return render_template('kidswork.html', env=env, events=events, event_id=int(event_id), registrations=registrations)
 
 
 def is_authenticated():
