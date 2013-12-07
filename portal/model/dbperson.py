@@ -41,7 +41,6 @@ class Person(Database):
         if 'personid' not in record:
             return False
 
-        #app.logger.debug(record)
         # Try updating the record and get the rowcount to see if it worked
         sql_update = """
             UPDATE person
@@ -156,7 +155,6 @@ class Person(Database):
         if 'groupsid' not in record:
             return False
 
-        #app.logger.debug(record)
         # Try updating the record and get the rowcount to see if it worked
         sql_update = """
             UPDATE groups
@@ -510,3 +508,81 @@ class Person(Database):
         self.cursor.execute(sql, (from_date,))
         rows = self.cursor.fetchall()
         return rows
+
+    def registrations_calc(self, event_id=0):
+        """
+        Pivot the registration data so that it can be used for charts.
+        """
+        event_id = int(event_id)
+        # Get the totals by event
+        event_summary = self._event_summary(event_id)
+        event_group = self._event_group(event_id)
+
+        # Convert the report totals into dictionary for simpler conversion to Google Chart format
+        events = {}
+        keys = {}
+        for e in event_summary:
+            keys[e['name']] = e['name']
+            if events.get(e['event_date']):
+                if events[e['event_date']].get(e['name']):
+                    events[e['event_date']][e['name']] += e['count']
+                else:
+                    events[e['event_date']][e['name']] = e['count']
+            else:
+                events[e['event_date']] = {
+                    e['name']: e['count']
+                }
+
+        # Calculate the events total column
+        for e in event_summary:
+            events[e['event_date']]['Total'] = events[e['event_date']].get('Total', 0) + e['count']
+
+        for e in event_group:
+            keys[e['kids_group']] = e['kids_group']
+            if events.get(e['event_date']):
+                if events[e['event_date']].get(e['kids_group']):
+                    events[e['event_date']][e['kids_group']] += e['count']
+                else:
+                    events[e['event_date']][e['kids_group']] = e['count']
+            else:
+                events[e['event_date']] = {
+                    e['kids_group']: e['count']
+                }
+
+        return events, keys
+
+    def _event_summary(self, event_id=0):
+         # Get the totals by event
+        ev_sql = """select r.event_date, e.name, count(*) from registration r
+                    inner join event e on e.eventid=r.eventid
+                    group by r.event_date, r.eventid, e.name
+                 """
+        if event_id > 0:
+            ev_sql += " having r.eventid=%s order by r.event_date"
+            self.cursor.execute(ev_sql, (event_id,))
+        else:
+            ev_sql += " order by r.event_date"
+            self.cursor.execute(ev_sql)
+
+        event_summary = self.cursor.fetchall()
+        if not event_summary:
+            event_summary = []
+        return event_summary
+
+    def _event_group(self, event_id=0):
+         # Get the totals by kids group
+        ev_sql = """select r.event_date, p.kids_group, count(*) from registration r
+                    inner join person p on p.tagnumber=r.person_tag
+                    group by r.event_date, p.kids_group, r.eventid
+                 """
+        if event_id > 0:
+            ev_sql += " having r.eventid=%s order by r.event_date"
+            self.cursor.execute(ev_sql, (event_id,))
+        else:
+            ev_sql += " order by r.event_date"
+            self.cursor.execute(ev_sql)
+
+        event_summary = self.cursor.fetchall()
+        if not event_summary:
+            event_summary = []
+        return event_summary

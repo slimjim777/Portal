@@ -40,7 +40,6 @@ def index():
 
             session['groups'] = [x['name'] for x in groups]
             session['groups_contact'] = [x['name'] for x in groups if x['contact_only']]
-            app.logger.debug(session)
             return redirect(url_for('people'))
         else:
             form.username.errors.append('Username or password is incorrect.')
@@ -270,8 +269,23 @@ def kidswork():
         event_id = 0
     person = Person()
     registrations = person.registrations(event_id, today_only=False)
+    event_summary, keys = person.registrations_calc(event_id)
 
-    return render_template('kidswork.html', env=env, events=events, event_id=int(event_id), registrations=registrations)
+    # Create the report list headers
+    report = [['Event Date']]
+    report[0].extend(keys.keys())
+    report[0].append('Total')
+
+    # Convert the totals by event into the table for the chart
+    for key in sorted(event_summary.keys()):
+        e = event_summary[key]
+        rec = [key.strftime('%Y-%m-%d')]
+        for k in range(1, len(report[0])):
+            ev_name = report[0][k]
+            rec.append(e.get(ev_name, 0))
+        report.append(rec)
+
+    return render_template('kidswork.html', env=env, events=events, event_id=int(event_id), registrations=registrations, report=report, total_index=len(report[0]) - 2)
 
 
 def is_authenticated():
