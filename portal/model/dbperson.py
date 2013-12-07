@@ -277,7 +277,7 @@ class Person(Database):
         for o in rows:
             record = {
                 'stage': o['status'],
-                'event_date': o['event_date'],
+                'event_date': o['event_date'].strftime('%Y-%m-%d'),
                 'event_name': o['event_name']
             }
 
