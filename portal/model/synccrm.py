@@ -134,7 +134,7 @@ class SyncCRM(object):
         app.logger.info('Remove inactive records done')
           
           
-    def registration_sync(self, from_date):
+    def registration_sync(self):
         """
         Push the registrations from the local database to CRM.
         """
