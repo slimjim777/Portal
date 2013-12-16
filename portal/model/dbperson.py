@@ -490,7 +490,7 @@ class Person(Database):
             })
         return record
 
-    def registrations_sync(self, from_date):
+    def registrations_sync(self, from_date=None):
         """
         Push the registrations from the current date to CRM.
         """
