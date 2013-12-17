@@ -138,7 +138,12 @@ class CRMPerson(SageCRMWrapper):
                 salvation = True
             else:
                 salvation = False
-
+            if getattr(p, 'c_partnerdate', None):
+                partner = True
+            else:
+                partner = False
+            key_leader = getattr(p, 'c_key_leader', False)
+    
             record = {
                 'personid': p.personid,
                 'name': u'%s %s' % (p.firstname, p.lastname),
@@ -167,6 +172,8 @@ class CRMPerson(SageCRMWrapper):
                 'team_serving': team_serving,
                 'baptised': baptised,
                 'salvation': salvation,
+                'partner': partner,
+                'key_leader': key_leader,
             }
             people.append(record)
         return people

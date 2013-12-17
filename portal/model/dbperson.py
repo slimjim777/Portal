@@ -52,7 +52,8 @@ class Person(Database):
             marital_status=%(marital_status)s, lifegroup=%(lifegroup)s, address1=%(address1)s,
             address2=%(address2)s, city=%(city)s, postcode=%(postcode)s, country=%(country)s,
             home_phone=%(home_phone)s, mobile_phone=%(mobile_phone)s, email=%(email)s,
-            baptised=%(baptised)s, salvation=%(salvation)s
+            baptised=%(baptised)s, salvation=%(salvation)s, partner=%(partner)s,
+            key_leader=%(key_leader)s 
             WHERE personid=%(personid)s
         """
         self.cursor.execute(sql_update, record)
@@ -68,7 +69,7 @@ class Person(Database):
                 %(medical_info)s,%(medical_notes)s,%(territory)s,%(firstname)s,%(gender)s,
                 %(marital_status)s,%(lifegroup)s,%(address1)s,%(address2)s,%(city)s,
                 %(postcode)s,%(country)s,%(home_phone)s,%(mobile_phone)s,%(email)s,
-                %(baptised)s,%(salvation)s
+                %(baptised)s,%(salvation)s,%(partner)s,%(key_leader)s
                 )"""
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
