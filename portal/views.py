@@ -34,6 +34,10 @@ def index():
             session['access'] = u['access'].split(',')
             session['role'] = u['role']
             session['login_time'] = time.time()
+            session['permissions'] = {
+                'partner': u['partner_access'],
+                'key_leader': u['keyleader_access'],
+            }
 
             # Set the team-serving groups this person can update
             groups = user.groups(u['personid'])

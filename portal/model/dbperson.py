@@ -34,6 +34,22 @@ class Person(Database):
 
         return True
 
+    def update(self, record):
+        """
+        Update a person record using key-value.
+        """
+        valid_fields = ['partner', 'key_leader']
+        sql_update = "UPDATE person SET "
+        sql_set = []
+        for f in valid_fields:
+            if f in record:
+                sql_set.append(f + '=%(' + f + ')s')
+        sql_where = " WHERE personid=%(personid)s"
+        self.cursor.execute(sql_update + ','.join(sql_set) + sql_where, record)
+        self.sqlconn.commit()
+        
+        return {'response': 'Success'}
+
     def person_upsert(self, record):
         """
         Update or insert the provided person record.
@@ -53,8 +69,8 @@ class Person(Database):
             address2=%(address2)s, city=%(city)s, postcode=%(postcode)s, country=%(country)s,
             home_phone=%(home_phone)s, mobile_phone=%(mobile_phone)s, email=%(email)s,
             baptised=%(baptised)s, salvation=%(salvation)s, partner=%(partner)s,
-            key_leader=%(key_leader)s 
-            WHERE personid=%(personid)s
+            key_leader=%(key_leader)s
+             WHERE personid=%(personid)s
         """
         self.cursor.execute(sql_update, record)
         if self.cursor.rowcount > 0:
@@ -99,20 +115,68 @@ class Person(Database):
             self.cursor.execute(sql_insert, (personid, names,))
             self.sqlconn.commit()
 
-    def people_in_groups(self, groups):
+    def people_in_groups(self, groups, fields=[]):
+        where = []
+        for f in fields:
+            where.append('%s=true' % f)    
+    
         names = tuple(x.replace('&', '&&') for x in groups)
         territories = tuple(x for x in session['access'])
-        sql = """
-            select personid, name, email, home_phone, mobile_phone from person
-            where personid in
-                (select personid from membership m
-                    inner join groups g on m.groupsid=g.groupsid
-                    where g.name in %s)
-            and territory in %s
-            order by name
-        """
+        
+        if len(where) == 0:
+            sql = """
+                select personid, name, email, home_phone, mobile_phone from person
+                where personid in
+                    (select personid from membership m
+                        inner join groups g on m.groupsid=g.groupsid
+                        where g.name in %s)
+                and territory in %s
+                order by name
+            """
+        else:
+            sql = """
+                select personid, name, email, home_phone, mobile_phone from person
+                where (personid in
+                    (select personid from membership m
+                        inner join groups g on m.groupsid=g.groupsid
+                        where g.name in %s) or """ + ' or '.join(where) + """
+                ) and territory in %s
+                order by name
+            """
         people = []
         self.cursor.execute(sql, (names, territories,))
+        rows = self.cursor.fetchall()
+
+        if not rows:
+            return []
+
+        for r in rows:
+            people.append(dict(r))
+
+        return people
+
+    def people_in_filter(self, fields):
+        where = []
+        for f in fields:
+            where.append('%s=true' % f)
+
+        territories = tuple(x for x in session['access'])
+        if len(where) > 0:
+            sql = """
+                select personid, name, email, home_phone, mobile_phone from person
+                where """ + ' or '.join(where) + """
+                and territory in %s
+                order by name
+            """
+        else:
+            sql = """
+                select personid, name, email, home_phone, mobile_phone from person
+                where territory in %s
+                order by name
+            """
+
+        people = []
+        self.cursor.execute(sql, (territories,))
         rows = self.cursor.fetchall()
 
         if not rows:

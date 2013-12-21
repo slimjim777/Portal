@@ -142,11 +142,35 @@ class User(Database):
         self.sqlconn.commit()
         return {'response':'Success'}
 
+    def partner_access_update(self, personid, partner_access):
+        """
+        Update the partner access for a user.
+        """
+        access = {'rw': 2, 'ro': 1}.get(partner_access)
+        
+        # Save the update territory list
+        sql = 'update visitor set partner_access=%s where personid=%s'
+        self.cursor.execute(sql, (access, personid,))
+        self.sqlconn.commit()
+        return {'response':'Success'}
+
+    def keyleader_access_update(self, personid, keyleader_access):
+        """
+        Update the key-leader access for a user.
+        """
+        access = {'rw': 2, 'ro': 1}.get(keyleader_access)
+        
+        # Save the update territory list
+        sql = 'update visitor set keyleader_access=%s where personid=%s'
+        self.cursor.execute(sql, (access,personid,))
+        self.sqlconn.commit()
+        return {'response':'Success'}
+
     def new(self, rec):
         """
         Create the user account.
         """
-        sql = 'insert into visitor values (%s,%s,%s,%s,%s)'
+        sql = 'insert into visitor values (%s,%s,%s,%s,%s,%s,%s)'
 
         if rec.get('password'):
             pwd = self._hashed(rec['password'])
@@ -155,7 +179,9 @@ class User(Database):
         try:
             self.cursor.execute(sql, (rec['personid'], rec['username'].lower(), pwd,
                                         rec.get('access','Active'),
-                                        rec.get('role','Standard'),))
+                                        rec.get('role','Standard'),
+                                        rec.get('partner_access'),
+                                        rec.get('keyleader_access'),))
             self.sqlconn.commit()
         except Exception as e:
             return str(e)

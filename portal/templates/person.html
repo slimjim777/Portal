@@ -141,8 +141,20 @@
                <div class="subcell">
                     <div class="subcell-label">Partner</div>
                     <div class="subcell-data">
-                    {%if row.partner %}
-                        <span class="ui-icon ui-icon-check"></span>
+                    {% if session.permissions.partner == 2 %}
+                        <div id="p_partner">
+                        {% if row.partner %}
+                            <input type="radio" id="p_partner_y" name="p_partner" checked="checked"><label for="p_partner_y">Yes</label>
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'partner', false)" id="p_partner_n" name="p_partner"><label for="p_partner_n">No</label>
+                        {% else %}
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'partner', true)" id="p_partner_y" name="p_partner"><label for="p_partner_y">Yes</label>
+                            <input type="radio" id="p_partner_n" name="p_partner" checked="checked"><label for="p_partner_n">No</label>
+                        {% endif %}
+                        </div>
+                    {% else %}
+                        {% if row.partner %}
+                            <span class="ui-icon ui-icon-check"></span>
+                        {% endif %}
                     {% endif %}
                     </div>
                </div>
@@ -151,8 +163,20 @@
                <div class="subcell">
                     <div class="subcell-label">Key Leader</div>
                     <div class="subcell-data">
-                    {%if row.key_leader %}
-                        <span class="ui-icon ui-icon-check"></span>
+                    {% if session.permissions.key_leader == 2 %}
+                        <div id="p_keyleader">
+                        {% if row.key_leader %}
+                            <input type="radio" id="p_keyleader_y" name="p_keyleader" checked="checked"><label for="p_keyleader_y">Yes</label>
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'key_leader', false)" id="p_keyleader_n" name="p_keyleader"><label for="p_keyleader_n">No</label>
+                        {% else %}
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'key_leader', true)" id="p_keyleader_y" name="p_keyleader"><label for="p_keyleader_y">Yes</label>
+                            <input type="radio" id="p_keyleader_n" name="p_keyleader" checked="checked"><label for="p_keyleader_n">No</label>
+                        {% endif %}
+                        </div>
+                    {% else %}
+                        {% if row.key_leader %}
+                            <span class="ui-icon ui-icon-check"></span>
+                        {% endif %}
                     {% endif %}
                     </div>
                </div>
@@ -194,7 +218,7 @@
     </div>
 </div>
 
-<script>
+<script>    
     function toggleServing(el, code) {
         var groupName = $(el).text();
     
@@ -334,5 +358,9 @@
 </div>
 {% endif %}
 
+<script>
+    $( "#p_partner" ).buttonset();
+    $( "#p_keyleader" ).buttonset();
+</script>
 
 {% endblock %}

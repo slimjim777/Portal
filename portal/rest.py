@@ -29,7 +29,11 @@ def login_action():
         session['access'] = u['access'].split(',')
         session['role'] = u['role']
         session['login_time'] = time.time()
-
+        session['permissions'] = {
+            'partner': u['partner_access'],
+            'key_leader': u['keyleader_access'],
+        }
+        
         # Set the team-serving groups this person can update
         groups = user.groups(u['personid'])
 
@@ -92,6 +96,33 @@ def person():
     result = person.person(request.json['tag_number'], request.json.get('details'))
     return jsonify(result)
 
+@app.route("/rest/v1.0/person/<int:personid>", methods=['POST'])
+def person_update(personid):
+    """
+    Update the person record.
+    """
+    login_action()
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+
+    # Update the person's details
+    person = Person()
+    result = person.update(request.json)
+    
+    # Update the person record in CRM
+    crm = CRMPerson()
+    crm.crm_login()
+    for k, v in request.json.iteritems():
+        if k != 'personid':
+            response = crm.person_update(request.json['personid'], k, v)
+            if response['response'] != 'Success':
+                return jsonify(response)
+    
+    return jsonify(result)
 
 @app.route("/rest/v1.0/person/find", methods=['POST'])
 def person_find():
@@ -132,12 +163,40 @@ def person_groups():
         abort(400)
 
     groups = request.json.get('groups', [])
+    fields = request.json.get('fields', [])
+    
+    # Handle empty lists
+    if len(groups) == 0 and len(fields) == 0:
+        return jsonify(result=[])
+
+    person = Person()
+    if len(groups) == 0:
+        rows = person.people_in_filter(fields)
+    else:
+        rows = person.people_in_groups(groups, fields)
+
+    return jsonify(result=rows)
+
+
+@app.route("/rest/v1.0/person/filter", methods=['POST'])
+def person_filter():
+    """
+    Called by the portal.
+    Find the people in a particular 'team-serving' group.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+
+    groups = request.json.get('fields', [])
     if len(groups) == 0:
         return jsonify(result=[])
 
     person = Person()
-    rows = person.people_in_groups(groups)
-
+    rows = person.people_in_filter(groups)
     return jsonify(result=rows)
 
 
@@ -212,6 +271,33 @@ def user_group():
 
     user = User()
     response = user.user_group_update(request.json['personid'], request.json['action'], request.json['group'])
+    return jsonify(response)
+
+
+@app.route("/rest/v1.0/user_access", methods=['POST'])
+def user_access():
+    """
+    Called by the portal.
+    Updating the access for a user account.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+    if ('personid' not in request.json):
+        return jsonify({'response': 'Failed', 'error': "The Person's 'personid' must be supplied."})
+    if ('action' not in request.json):
+        return jsonify({'response': 'Failed', 'error': "The 'action' must be supplied."})
+    if ('type' not in request.json):
+        return jsonify({'response': 'Failed', 'error': "The 'type' must be supplied."})
+
+    user = User()
+    if request.json['type'] == 'partner':
+        response = user.partner_access_update(request.json['personid'], request.json['action'])
+    else:
+        response = user.keyleader_access_update(request.json['personid'], request.json['action'])
     return jsonify(response)
 
 

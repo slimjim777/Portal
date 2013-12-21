@@ -85,6 +85,34 @@
            </div>
            <div class="cell-data">
                <div class="subcell">
+                    <div class="subcell-label">Partner Access</div>
+                    <div class="subcell-data">
+                        {% if row.partner_access == 1 %}
+                        <button class="ui-corner-all ui-state-default" onclick="adminTogglePartner(this, 'rw', {{ row.personid }})">Contact-Only</button>
+                        {% elif row.partner_access == 2 %}
+                        <button class="ui-corner-all ui-state-active" onclick="adminTogglePartner(this, 'off', {{ row.personid }})">Manage</button>
+                        {% else %}
+                        <button onclick="adminTogglePartner(this, 'ro', {{ row.personid }})">None</button>
+                        {% endif %}
+                    </div>
+               </div>
+           </div>           
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Key Leader Access</div>
+                    <div class="subcell-data">
+                        {% if row.keyleader_access == 1 %}
+                        <button class="ui-corner-all ui-state-default" onclick="adminToggleKeyLeader(this, 'rw', {{ row.personid }})">Contact-Only</button>
+                        {% elif row.keyleader_access == 2 %}
+                        <button class="ui-corner-all ui-state-active" onclick="adminToggleKeyLeader(this, 'off', {{ row.personid }})">Manage</button>
+                        {% else %}
+                        <button onclick="adminToggleKeyLeader(this, 'ro', {{ row.personid }})">None</button>
+                        {% endif %}
+                    </div>
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
                     <div class="subcell-label">Last Login</div>
                     <div class="subcell-data">{{ row.last_login }}</div>
                </div>

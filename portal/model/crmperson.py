@@ -138,10 +138,7 @@ class CRMPerson(SageCRMWrapper):
                 salvation = True
             else:
                 salvation = False
-            if getattr(p, 'c_partnerdate', None):
-                partner = True
-            else:
-                partner = False
+            partner = getattr(p, 'c_partner', False)
             key_leader = getattr(p, 'c_key_leader', False)
     
             record = {
@@ -248,6 +245,22 @@ class CRMPerson(SageCRMWrapper):
             oppo.opened = oppo_opened
             oppo.targetclose = oppo_targetclose
             self.connection.client.service.add("opportunity", [oppo])
+
+    def person_update(self, personid, field, field_value):
+        """
+        Update the boolean flags on the person.
+        """
+        p = self.connection.client.factory.create("person")
+        p.personid = personid
+        if key == 'partner':
+            p.c_partner = field_value
+        elif key == 'key_leader':
+            p.c_key_leader = field_value
+        else:
+            return {'response':'Failed', 'message':'Invalid field provided for the update'}
+        
+        result = self.connection.client.service.update("person", [p])
+        return {'response':'Success'}
 
     def person_membership(self, personid, group_name, add_action=True):
         """
