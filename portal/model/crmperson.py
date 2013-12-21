@@ -252,9 +252,9 @@ class CRMPerson(SageCRMWrapper):
         """
         p = self.connection.client.factory.create("person")
         p.personid = personid
-        if key == 'partner':
+        if field == 'partner':
             p.c_partner = field_value
-        elif key == 'key_leader':
+        elif field == 'key_leader':
             p.c_key_leader = field_value
         else:
             return {'response':'Failed', 'message':'Invalid field provided for the update'}
