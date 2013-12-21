@@ -196,7 +196,7 @@
    
     <div>
         <div class="row">
-            <div class="cell">{{ row.firstname }} is serving in the following <span class="group ui-corner-all ui-state-default">highlighted</span> groups.</div>
+            <div class="cell">The highlighting colours indicate that you have <span class="group ui-corner-all ui-state-default">contact-only</span> or <span class="group ui-corner-all ui-state-active">manage</span> permissions.</div>
             {% for r in row.team_serving %}
                 {% if (r.name in session.groups and r.name not in session.groups_contact) or session.role == 'Admin' %}
                     <button class="ui-corner-all ui-state-active" onclick="toggleServing(this, '{{ r.code }}')">{{ r.name }}</button>
