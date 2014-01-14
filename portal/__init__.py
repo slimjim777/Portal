@@ -3,6 +3,11 @@ from flask_sslify import SSLify
 import os
 import logging
 
+# Default the encoding to Unicode
+import sys
+reload(sys)
+sys.setdefaultencoding('UTF8')
+
 app = Flask(__name__)
 
 if not os.environ.get("PORTAL_DEBUG"):
