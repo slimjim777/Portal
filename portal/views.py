@@ -288,8 +288,6 @@ def kidswork():
             ev_name = report[0][k]
             rec.append(e.get(ev_name, 0))
         report.append(rec)
-      
-    app.logger.info(registrations)
 
     return render_template('kidswork.html', env=env, events=events, event_id=int(event_id), registrations=registrations, report=report, total_index=len(report[0]) - 2)
 
