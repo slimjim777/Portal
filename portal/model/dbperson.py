@@ -283,7 +283,7 @@ class Person(Database):
             if p['status'] == 'Signed-In':
                 signed_in.append(person)
             elif p['status'] == 'Signed-Out':
-                signed_in.append(person)
+                signed_out.append(person)
 
         return {'signed_in': signed_in, 'signed_out': signed_out}
 
