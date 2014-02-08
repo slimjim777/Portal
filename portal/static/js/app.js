@@ -192,7 +192,7 @@ function contactToggleServing(el) {
               table += '<tr><td><a id="c-' + d.personid +'" href="/people/'+ d.personid +'">' + d.name + '</a></td>' +
                       '<td>' + d.email + '</td><td>' + d.home_phone + '</td><td>' + d.mobile_phone + '</td></tr>';
               if (d.email) {
-                emails.push( '\"' + d.name + ' \<' + d.email + '\>\"' );
+                emails.push( d.name + ' \<' + d.email + '\>' );
               }
           }
           table += '</table>';
