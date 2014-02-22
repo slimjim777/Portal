@@ -10,11 +10,9 @@ from portal import app
 from portal.model.models import Database
 import re
 
-__author__ = 'jjesudason'
-
 
 class User(Database):
-    TERRITORIES = ['Active','Kidswork']
+    TERRITORIES = ['Active','Kidswork','Congregation']
 
     @staticmethod
     def _hashed(pwd):

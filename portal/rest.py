@@ -1,7 +1,7 @@
 from flask import request, session, abort, jsonify, flash
 from portal import app
 from portal.model.dbevent import Event
-from portal.model.crmperson import CRMPerson
+from portal.model.sfperson import SFPerson
 from portal.model.dbperson import Person
 from portal.model.dbuser import User
 from portal.views import is_authenticated, is_admin
@@ -111,14 +111,14 @@ def person_update(personid):
 
     # Update the person's details
     person = Person()
+    app.logger.debug(request.json)
     result = person.update(request.json)
     
     # Update the person record in CRM
-    crm = CRMPerson()
-    crm.crm_login()
+    crm = SFPerson()
     for k, v in request.json.iteritems():
-        if k != 'personid':
-            response = crm.person_update(request.json['personid'], k, v)
+        if k not in ['personid', 'externalid']:
+            response = crm.person_update(request.json['personid'], request.json['externalid'], k, v)
             if response['response'] != 'Success':
                 return jsonify(response)
     
@@ -315,6 +315,8 @@ def membership():
         abort(400)
     if ('personid' not in request.json):
         return jsonify({'response': 'Failed', 'error': "The Person's 'personid' must be supplied."})
+    if ('contactid' not in request.json):
+        return jsonify({'response': 'Failed', 'error': "The Person's 'contactid' must be supplied."})
     if ('action' not in request.json):
         return jsonify({'response': 'Failed', 'error': "The 'action' must be supplied."})
     if ('membership' not in request.json):
@@ -325,13 +327,12 @@ def membership():
     response = person.membership_update(request.json['personid'], request.json['action'], request.json['membership'])
 
     # Update the membership in CRM
-    crm = CRMPerson()
+    crm = SFPerson()
     if request.json['action'] == 'add':
         add_action = True
     else:
         add_action = False
-    crm.crm_login()
-    response = crm.person_membership(request.json['personid'], request.json['membership'], add_action)
+    response = crm.person_membership(request.json['contactid'], request.json['membership'], response.get('membershipid'), add_action)
 
     return jsonify(response)
 

@@ -2,8 +2,6 @@ import datetime
 from flask import session
 from portal.model.models import Database
 
-__author__ = 'jjesudason'
-
 
 class Person(Database):
 
@@ -17,8 +15,8 @@ class Person(Database):
         # Try updating the record and get the rowcount to see if it worked
         sql_update = """
             UPDATE family
-            SET name=%(name)s, tagnumber=%(tagnumber)s, territory=%(territory)s
-            WHERE familyid=%(familyid)s"""
+            SET name=%(name)s, tagnumber=%(tagnumber)s, territory=%(territory)s, familyid=%(familyid)s
+             WHERE externalid=%(externalid)s"""
         self.cursor.execute(sql_update, record)
         if self.cursor.rowcount > 0:
             # Updated an existing record
@@ -27,7 +25,7 @@ class Person(Database):
             # Create a new family record
             sql_insert = """
                 INSERT INTO family
-                VALUES (%(familyid)s,%(name)s,%(tagnumber)s,%(territory)s
+                VALUES (DEFAULT,%(name)s,%(tagnumber)s,%(territory)s,%(externalid)s
                 )"""
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
@@ -44,10 +42,10 @@ class Person(Database):
         for f in valid_fields:
             if f in record:
                 sql_set.append(f + '=%(' + f + ')s')
-        sql_where = " WHERE personid=%(personid)s"
+        sql_where = " WHERE externalid=%(externalid)s"
         self.cursor.execute(sql_update + ','.join(sql_set) + sql_where, record)
         self.sqlconn.commit()
-        
+
         return {'response': 'Success'}
 
     def person_upsert(self, record):
@@ -64,13 +62,13 @@ class Person(Database):
             type=%(type)s, kids_group=%(kids_group)s, kids_team=%(kids_team)s,
             school_year=%(school_year)s, dob=%(dob)s, medical_info=%(medical_info)s,
             medical_notes=%(medical_notes)s,territory=%(territory)s,
-            firstname=%(firstname)s, gender=%(gender)s,
+            firstname=%(firstname)s, gender=%(gender)s, personid=%(personid)s,
             marital_status=%(marital_status)s, lifegroup=%(lifegroup)s, address1=%(address1)s,
             address2=%(address2)s, city=%(city)s, postcode=%(postcode)s, country=%(country)s,
             home_phone=%(home_phone)s, mobile_phone=%(mobile_phone)s, email=%(email)s,
             baptised=%(baptised)s, salvation=%(salvation)s, partner=%(partner)s,
             key_leader=%(key_leader)s
-             WHERE personid=%(personid)s
+             WHERE externalid=%(externalid)s
         """
         self.cursor.execute(sql_update, record)
         if self.cursor.rowcount > 0:
@@ -80,12 +78,12 @@ class Person(Database):
             # Create a new person record (field order must match the table)
             sql_insert = """
                 INSERT INTO person
-                VALUES (%(personid)s,%(name)s,%(family_tag)s,%(tagnumber)s,%(type)s,
+                VALUES (DEFAULT,%(name)s,%(family_tag)s,%(tagnumber)s,%(type)s,
                 %(kids_group)s,%(kids_team)s,%(school_year)s,%(dob)s,
                 %(medical_info)s,%(medical_notes)s,%(territory)s,%(firstname)s,%(gender)s,
                 %(marital_status)s,%(lifegroup)s,%(address1)s,%(address2)s,%(city)s,
                 %(postcode)s,%(country)s,%(home_phone)s,%(mobile_phone)s,%(email)s,
-                %(baptised)s,%(salvation)s,%(partner)s,%(key_leader)s
+                %(baptised)s,%(salvation)s,%(partner)s,%(key_leader)s,%(externalid)s
                 )"""
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
@@ -118,11 +116,11 @@ class Person(Database):
     def people_in_groups(self, groups, fields=[]):
         where = []
         for f in fields:
-            where.append('%s=true' % f)    
-    
+            where.append('%s=true' % f)
+
         names = tuple(x.replace('&', '&&') for x in groups)
         territories = tuple(x for x in session['access'])
-        
+
         if len(where) == 0:
             sql = """
                 select personid, name, email, home_phone, mobile_phone from person
@@ -193,25 +191,31 @@ class Person(Database):
         """
         params = {
             'personid': personid,
-            'name': membership.replace('&', '&&'),
+            'code': membership.replace('&', '&&'),
         }
+
         if action == 'remove':
             sql = """
                 delete from membership
-                where groupsid in (select groupsid from groups where name=%(name)s)
+                where groupsid in (select groupsid from groups where code=%(code)s)
                   and personid=%(personid)s
             """
         elif action == 'add':
             sql = """
                 insert into membership (personid, groupsid)
-                    (select %(personid)s,groupsid from groups where name=%(name)s)
+                (select %(personid)s,groupsid from groups where code=%(code)s)
+                RETURNING membershipid
             """
         else:
             return {'response': 'Failed', 'error': 'Invalid action'}
 
         self.cursor.execute(sql, params)
         self.sqlconn.commit()
-        return {'response': 'Success'}
+        if action == 'add':
+            membership_id = self.cursor.fetchone()[0]
+        else:
+            membership_id = None
+        return {'response': 'Success', 'membershipid': membership_id}
 
     def groups_upsert(self, record):
         """
@@ -223,8 +227,8 @@ class Person(Database):
         # Try updating the record and get the rowcount to see if it worked
         sql_update = """
             UPDATE groups
-            SET code=%(code)s, name=%(name)s
-            WHERE groupsid=%(groupsid)s
+            SET name=%(name)s
+            WHERE code=%(code)s
         """
         self.cursor.execute(sql_update, record)
         if self.cursor.rowcount > 0:
@@ -233,8 +237,8 @@ class Person(Database):
         else:
             # Create a new person record (field order must match the table)
             sql_insert = """
-                INSERT INTO groups
-                VALUES (%(groupsid)s,%(name)s,%(code)s)
+                INSERT INTO groups (name, code)
+                VALUES (%(name)s,%(code)s)
                 """
             self.cursor.execute(sql_insert, record)
             self.sqlconn.commit()
@@ -564,9 +568,10 @@ class Person(Database):
 
         # Get the registrations from the local db
         sql = """
-            select f.familyid, p.personid, r.* from registration r
+            select f.familyid, p.personid, p.externalid contactid, r.*, e.* from registration r
             inner join family f on f.tagnumber=family_tag
             inner join person p on p.tagnumber=person_tag
+            inner join event e on e.eventid = r.eventid
             where event_date>=%s
             order by event_date desc limit 500
         """

@@ -145,9 +145,9 @@
                         <div id="p_partner">
                         {% if row.partner %}
                             <input type="radio" id="p_partner_y" name="p_partner" checked="checked"><label for="p_partner_y">Yes</label>
-                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'partner', false)" id="p_partner_n" name="p_partner"><label for="p_partner_n">No</label>
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, '{{ row.externalid }}', 'partner', false)" id="p_partner_n" name="p_partner"><label for="p_partner_n">No</label>
                         {% else %}
-                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'partner', true)" id="p_partner_y" name="p_partner"><label for="p_partner_y">Yes</label>
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, '{{ row.externalid }}', 'partner', true)" id="p_partner_y" name="p_partner"><label for="p_partner_y">Yes</label>
                             <input type="radio" id="p_partner_n" name="p_partner" checked="checked"><label for="p_partner_n">No</label>
                         {% endif %}
                         </div>
@@ -167,9 +167,9 @@
                         <div id="p_keyleader">
                         {% if row.key_leader %}
                             <input type="radio" id="p_keyleader_y" name="p_keyleader" checked="checked"><label for="p_keyleader_y">Yes</label>
-                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'key_leader', false)" id="p_keyleader_n" name="p_keyleader"><label for="p_keyleader_n">No</label>
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, '{{ row.externalid }}', 'key_leader', false)" id="p_keyleader_n" name="p_keyleader"><label for="p_keyleader_n">No</label>
                         {% else %}
-                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, 'key_leader', true)" id="p_keyleader_y" name="p_keyleader"><label for="p_keyleader_y">Yes</label>
+                            <input type="radio" onclick="personToggleProfile({{ row.personid }}, '{{ row.externalid }}', 'key_leader', true)" id="p_keyleader_y" name="p_keyleader"><label for="p_keyleader_y">Yes</label>
                             <input type="radio" id="p_keyleader_n" name="p_keyleader" checked="checked"><label for="p_keyleader_n">No</label>
                         {% endif %}
                         </div>
@@ -219,14 +219,15 @@
 </div>
 
 <script>    
-    function toggleServing(el, code) {
+    function toggleServing(el, sf_code) {
         var groupName = $(el).text();
     
         var postdata = {
             personid:{{ row.personid }},
+            contactid:'{{ row.externalid }}',
             action: '',
-            membership:$(el).text()
-            //membership: code
+            //membership:$(el).text()
+            membership:sf_code
         };
         
         var classNameUndo = 'ui-corner-all ui-state-active';

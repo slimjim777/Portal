@@ -206,10 +206,11 @@ function contactToggleServing(el) {
 }
 
 
-function personToggleProfile(personid, field, state) {
+function personToggleProfile(personid, externalid, field, state) {
     // Search for the list of people in those groups
     var postdata = {
         personid: personid,
+        externalid: externalid
     };
     postdata[field] = state;
     
@@ -226,7 +227,7 @@ function personToggleProfile(personid, field, state) {
         if(data.response=='Failed') {
             var $message = $('#messages');
             console.log(data);
-            $message.text(data.error);
+            $message.text(data.message);
             $message.attr('class', 'ui-state-error ui-corner-all');
             $message.show().fadeOut(2000);
             $( "#progressbar" ).hide();

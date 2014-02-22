@@ -1,16 +1,18 @@
-from portal.model.crmperson import CRMPerson
+#from portal.model.crmperson import CRMPerson
+from portal.model.sfperson import SFPerson
+
 from portal.model.dbperson import Person
 import psycopg2
 import psycopg2.extras
 from portal.model.models import Database
 import gevent
-import time, random
+import time
+import random
 from portal import app
 
 
 FAMILY = ['name','tagnumber']
 PERSON = ['name','family_tag','tagnumber','type','kids_group','kids_team','school_year','dob','medical_info','medical_notes']
-
 
 
 class SyncCRM(object):
@@ -62,8 +64,7 @@ class SyncCRM(object):
 
     def run_sync(self):        
         dates = self.lastsync()
-        self.crm = CRMPerson()
-        self.crm.crm_login()
+        self.crm = SFPerson()
         
         for d in dates:
             getattr(self, d['tablename']+'_sync')( d['lastsync'] )
@@ -175,7 +176,7 @@ class SyncCRM(object):
             group_ids.append(r['groupsid'])
             
         # Remove groups that are not in CRM
-        db.groups_sync_deletion(group_ids)
+        #db.groups_sync_deletion(group_ids)
 
         # Upsert the records into the Database
         for r in records:
