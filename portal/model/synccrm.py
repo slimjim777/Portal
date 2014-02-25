@@ -1,4 +1,3 @@
-#from portal.model.crmperson import CRMPerson
 from portal.model.sfperson import SFPerson
 
 from portal.model.dbperson import Person
