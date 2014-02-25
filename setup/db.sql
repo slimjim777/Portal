@@ -393,6 +393,14 @@ ALTER TABLE ONLY person
 
 
 --
+-- Name: person_pkey; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
+--
+
+ALTER TABLE ONLY person
+    ADD CONSTRAINT person_pkey PRIMARY KEY (personid);
+
+
+--
 -- Name: visitor_pkey; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
 --
 
