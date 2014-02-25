@@ -35,7 +35,8 @@ SET default_with_oids = false;
 CREATE TABLE event (
     eventid integer NOT NULL,
     name character varying(60),
-    type character varying(20)
+    type character varying(20),
+    externalid character varying(20) NOT NULL
 );
 
 
@@ -70,7 +71,8 @@ CREATE TABLE family (
     familyid integer NOT NULL,
     name character varying(200),
     tagnumber integer,
-    territory character varying(30)
+    territory character varying(30),
+    externalid character varying(20)
 );
 
 
@@ -145,11 +147,25 @@ ALTER SEQUENCE membership_membershipid_seq OWNED BY membership.membershipid;
 
 
 --
+-- Name: person_personid_seq; Type: SEQUENCE; Schema: public; Owner: cyglffdwsktfeo
+--
+
+CREATE SEQUENCE person_personid_seq
+    START WITH 2500
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.person_personid_seq OWNER TO cyglffdwsktfeo;
+
+--
 -- Name: person; Type: TABLE; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
 --
 
 CREATE TABLE person (
-    personid integer NOT NULL,
+    personid integer DEFAULT nextval('person_personid_seq'::regclass) NOT NULL,
     name character varying(200),
     family_tag integer,
     tagnumber integer,
@@ -174,7 +190,10 @@ CREATE TABLE person (
     mobile_phone character varying(40),
     email character varying(40),
     baptised boolean,
-    salvation boolean
+    salvation boolean,
+    partner boolean,
+    key_leader boolean,
+    externalid character varying(20)
 );
 
 
@@ -190,7 +209,8 @@ CREATE TABLE registration (
     person_tag integer,
     status character varying(20),
     eventid integer,
-    event_date date
+    event_date date,
+    last_modified timestamp without time zone DEFAULT ('now'::text)::date NOT NULL
 );
 
 
@@ -298,7 +318,9 @@ CREATE TABLE visitor (
     role character varying(20),
     last_login timestamp without time zone,
     reset character varying(60),
-    reset_expiry timestamp without time zone
+    reset_expiry timestamp without time zone,
+    partner_access integer,
+    keyleader_access integer
 );
 
 
@@ -347,6 +369,14 @@ ALTER TABLE ONLY user_group ALTER COLUMN user_groupid SET DEFAULT nextval('user_
 
 
 --
+-- Name: event_pkey; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
+--
+
+ALTER TABLE ONLY event
+    ADD CONSTRAINT event_pkey PRIMARY KEY (externalid);
+
+
+--
 -- Name: family_pkey; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
 --
 
@@ -355,11 +385,11 @@ ALTER TABLE ONLY family
 
 
 --
--- Name: person_pkey; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
+-- Name: person_externalid_index; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
 --
 
 ALTER TABLE ONLY person
-    ADD CONSTRAINT person_pkey PRIMARY KEY (personid);
+    ADD CONSTRAINT person_externalid_index UNIQUE (externalid);
 
 
 --
@@ -396,16 +426,6 @@ CREATE INDEX person_family_tag_index ON person USING btree (family_tag);
 --
 
 CREATE UNIQUE INDEX username_index ON visitor USING btree (username);
-
-
---
--- Name: public; Type: ACL; Schema: -; Owner: cyglffdwsktfeo
---
-
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM cyglffdwsktfeo;
-GRANT ALL ON SCHEMA public TO cyglffdwsktfeo;
-GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --
