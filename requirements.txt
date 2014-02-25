@@ -14,5 +14,7 @@ itsdangerous==0.23
 newrelic==2.0.0.1
 psycopg2==2.5.1
 pycparser==2.10
+requests==2.2.1
+simple-salesforce==0.62.0
 suds==0.4
 wsgiref==0.1.2
