@@ -1,6 +1,7 @@
 import datetime
 from flask import session
 from portal.model.models import Database
+from portal import app
 
 
 class Person(Database):
@@ -587,7 +588,6 @@ class Person(Database):
         # Get the totals by event
         event_summary = self._event_summary(event_id)
         event_group = self._event_group(event_id)
-
         # Convert the report totals into dictionary for simpler conversion to Google Chart format
         events = {}
         keys = {}
@@ -608,15 +608,16 @@ class Person(Database):
             events[e['event_date']]['Total'] = events[e['event_date']].get('Total', 0) + e['count']
 
         for e in event_group:
-            keys[e['kids_group']] = e['kids_group']
+            kids_group = e['kids_group'] or ''
+            keys[e['kids_group']] = kids_group
             if events.get(e['event_date']):
-                if events[e['event_date']].get(e['kids_group']):
-                    events[e['event_date']][e['kids_group']] += e['count']
+                if events[e['event_date']].get(kids_group):
+                    events[e['event_date']][kids_group] += e['count']
                 else:
-                    events[e['event_date']][e['kids_group']] = e['count']
+                    events[e['event_date']][kids_group] = e['count']
             else:
                 events[e['event_date']] = {
-                    e['kids_group']: e['count']
+                    e[kids_group]: e['count']
                 }
 
         return events, keys
@@ -655,4 +656,11 @@ class Person(Database):
         event_summary = self.cursor.fetchall()
         if not event_summary:
             event_summary = []
-        return event_summary
+            
+        events = []
+        for e in event_summary:
+            if not e['kids_group']:
+                e['kids_group'] = '-'
+            events.append(e)
+
+        return events

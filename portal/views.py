@@ -274,7 +274,6 @@ def kidswork():
     person = Person()
     registrations = person.registrations(event_id, today_only=False)
     event_summary, keys = person.registrations_calc(event_id)
-
     # Create the report list headers
     report = [['Event Date']]
     report[0].extend(keys.keys())
