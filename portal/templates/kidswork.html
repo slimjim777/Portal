@@ -46,18 +46,18 @@
 
 	    <table class="grid">
 	    <tr>
-	        <th>Event Name</th><th>Date</th><th>Name</th><th>Tag Number</th><th>Group</th><th>School Year</th><th>Parents</th><th>Stage</th>
+	        <th>Event Name</th><th>Date</th><th>Name</th><th>Tag Number</th><th>Group</th><th>School Year</th><th>Parents</th><th>Status</th>
 	    </tr>
 	    {% for r in registrations %}
 	    <tr>
-	    	<td>{{ r.event_name }}</td>
+	    	<td>{{ r.name }}</td>
 	    	<td>{{ r.event_date }}</td>
-	    	<td><a href="/people/{{ r.personid }}">{{ r.name }}</a></td>
+	    	<td><a href="/people/{{ r.personid }}">{{ r.person_name }}</a></td>
 	    	<td>{{ r.tagnumber }}</td>
-	    	<td>{{ r.group }}</td>
+	    	<td>{{ r.kids_group }}</td>
 	    	<td>{{ r.school_year }}</td>
 	    	<td>{{ r.parent }}</td>
-	    	<td>{{ r.stage }}</td>
+	    	<td>{{ r.status }}</td>
 	    </tr>
 	    {% endfor %}
 	    </table>

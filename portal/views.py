@@ -272,8 +272,9 @@ def kidswork():
     else:
         event_id = 0
     person = Person()
-    registrations = person.registrations(event_id, today_only=False)
+    registrations = person.registrations_chart(event_id=event_id)
     event_summary, keys = person.registrations_calc(event_id)
+
     # Create the report list headers
     report = [['Event Date']]
     report[0].extend(keys.keys())

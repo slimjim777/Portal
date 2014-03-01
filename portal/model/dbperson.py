@@ -580,6 +580,33 @@ class Person(Database):
         rows = self.cursor.fetchall()
         return rows
 
+    def registrations_chart(self, from_date=None, event_id=0):
+        """
+        Get the registrations for the Kidswork chart.
+        """
+        if not from_date:
+            from_date = '1980-01-01 00:00:00'
+
+        # Get the registrations from the local db
+        sql = """
+            select f.familyid, p.personid, p.externalid contactid, r.*, e.*, p.tagnumber, p.kids_group, p.school_year, f.name parent, p.name person_name
+            from registration r
+            inner join family f on f.tagnumber=family_tag
+            inner join person p on p.tagnumber=person_tag
+            inner join event e on e.eventid = r.eventid
+            where event_date>=%s
+        """
+        if int(event_id) > 0:
+            sql += " and r.eventid=%s"      
+        sql += "order by event_date desc limit 500"
+        
+        if int(event_id) > 0:
+            self.cursor.execute(sql, (from_date, event_id,))
+        else:
+            self.cursor.execute(sql, (from_date,))
+        rows = self.cursor.fetchall()
+        return rows
+
     def registrations_calc(self, event_id=0):
         """
         Pivot the registration data so that it can be used for charts.
@@ -646,7 +673,7 @@ class Person(Database):
                     inner join person p on p.tagnumber=r.person_tag
                     group by r.event_date, p.kids_group, r.eventid
                  """
-        if event_id > 0:
+        if int(event_id) > 0:
             ev_sql += " having r.eventid=%s order by r.event_date"
             self.cursor.execute(ev_sql, (event_id,))
         else:
