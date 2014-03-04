@@ -1,5 +1,6 @@
 from simple_salesforce import Salesforce
 import os
+from portal import app
 
 
 class SFPerson(object):
@@ -29,6 +30,7 @@ class SFPerson(object):
                 'Event_Date__c': r['event_date'].strftime('%Y-%m-%d'),
                 'Status__c': r['status'],
             }
+            app.logger.debug(sf_record)
 
             self.connection.Registration__c.upsert('ExternalId__c/%d' % r['registrationid'], sf_record)
 
@@ -57,7 +59,7 @@ class SFPerson(object):
             address_lines = (r['MailingStreet'] or '').split('\n')
 
             rec = {
-                'name': '%s %s' % (r['FirstName'], r['LastName']),
+                'name': ('%s %s' % (r['FirstName'], r['LastName'])).strip(),
                 'family_tag': int(r['Account']['Family_Tag__c']) if r['Account']['Family_Tag__c'] else None,
                 'tagnumber': r['Child_Tag_Number__c'],
                 'type': r['Contact_Type__c'],
@@ -104,7 +106,7 @@ class SFPerson(object):
             from_string = from_date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         soql = """
-            SELECT Id, Name, Family_Tag__c, ExternalId__c, Active__c
+            SELECT Id, Name, Salutation__c, Family_Tag__c, ExternalId__c, Active__c
             FROM Account
             WHERE LastModifiedDate >= %s
         """ % from_string
@@ -113,7 +115,7 @@ class SFPerson(object):
         records = []
         for r in result.get('records', []):
             rec = {
-                'name': r['Name'],
+                'name': '%s %s'.strip() % (r['Salutation__c'] or '', r['Name']),
                 'family_tag': int(r['Family_Tag__c']) if r['Family_Tag__c'] else None,
                 'tagnumber': r['Family_Tag__c'],
                 'territory': 'Kidswork' if r['Family_Tag__c'] else 'Congregation',

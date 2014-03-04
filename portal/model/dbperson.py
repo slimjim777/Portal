@@ -63,7 +63,7 @@ class Person(Database):
             type=%(type)s, kids_group=%(kids_group)s, kids_team=%(kids_team)s,
             school_year=%(school_year)s, dob=%(dob)s, medical_info=%(medical_info)s,
             medical_notes=%(medical_notes)s,territory=%(territory)s,
-            firstname=%(firstname)s, gender=%(gender)s, personid=%(personid)s,
+            firstname=%(firstname)s, gender=%(gender)s, 
             marital_status=%(marital_status)s, lifegroup=%(lifegroup)s, address1=%(address1)s,
             address2=%(address2)s, city=%(city)s, postcode=%(postcode)s, country=%(country)s,
             home_phone=%(home_phone)s, mobile_phone=%(mobile_phone)s, email=%(email)s,

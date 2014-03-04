@@ -18,9 +18,6 @@ class CRMPerson(SageCRMWrapper):
         """
         Gets the family records from the CRM system that have changed since the from date.
         """
-        # Make sure we are logged into the CRM system
-        #self.crm_login()
-
         # Query the CRM system
         if not from_date:
             from_date = '1980-01-01 00:00:00'

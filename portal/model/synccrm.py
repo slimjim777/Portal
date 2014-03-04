@@ -109,6 +109,8 @@ class SyncCRM(object):
         db = Person()
         app.logger.info('Upsert the person records')
         for r in records:
+            if not r['email']:
+                r['email'] = ''
             db.person_upsert(r)
 
         # Update the last sync date
