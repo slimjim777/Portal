@@ -177,7 +177,8 @@ class SyncCRM(object):
             group_ids.append(r['groupsid'])
             
         # Remove groups that are not in CRM
-        db.groups_sync_deletion(group_ids)
+        if len(group_ids) > 0:
+            db.groups_sync_deletion(group_ids)
 
         # Upsert the records into the Database
         for r in records:
