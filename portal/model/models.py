@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import urlparse
 
-from portal.model.sagecrm import Connection
 import psycopg2
 import psycopg2.extras
 import os
@@ -21,15 +20,4 @@ class Database(object):
             port=url.port
         )
         self.cursor = self.sqlconn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-
-
-class SageCRMWrapper(object):
-    def __init__(self):
-        self.connection = None
-
-    def crm_login(self):
-        self.connection = Connection(os.environ['SAGE_WSDL'])
-        self.connection.login( os.environ['SAGE_USER'], os.environ['SAGE_PASSWORD'] )
-
 
