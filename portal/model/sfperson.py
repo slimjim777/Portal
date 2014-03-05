@@ -153,7 +153,6 @@ class SFPerson(object):
                 'code': r['Id'],
             }
             records.append(rec)
-            print rec
 
         return records
 
