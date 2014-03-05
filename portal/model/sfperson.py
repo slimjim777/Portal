@@ -30,9 +30,9 @@ class SFPerson(object):
                 'Event_Date__c': r['event_date'].strftime('%Y-%m-%d'),
                 'Status__c': r['status'],
             }
-            app.logger.debug(sf_record)
-
-            self.connection.Registration__c.upsert('ExternalId__c/%d' % r['registrationid'], sf_record)
+            
+            if sf_record['Contact__c']:
+                self.connection.Registration__c.upsert('ExternalId__c/%d' % r['registrationid'], sf_record)
 
     def person(self, from_date):
         """

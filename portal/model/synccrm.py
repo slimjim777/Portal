@@ -168,8 +168,6 @@ class SyncCRM(object):
         # Get the updated team-serving options
         records = self.crm.team_serving_options(from_date)
         
-        app.logger.debug(records)
-                
         # Store the list of group Ids
         db = Person()
         group_ids = []
