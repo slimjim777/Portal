@@ -146,7 +146,7 @@ class SyncCRM(object):
 
         # Get the registrations from the database
         db = Person()
-        rows = db.registrations_sync()
+        rows = db.registrations_sync(from_date)
 
         # Push the registrations to CRM
         self.crm.registrations_sync(rows)
@@ -177,7 +177,7 @@ class SyncCRM(object):
             group_ids.append(r['groupsid'])
             
         # Remove groups that are not in CRM
-        #db.groups_sync_deletion(group_ids)
+        db.groups_sync_deletion(group_ids)
 
         # Upsert the records into the Database
         for r in records:

@@ -16,7 +16,7 @@ class Person(Database):
         # Try updating the record and get the rowcount to see if it worked
         sql_update = """
             UPDATE family
-            SET name=%(name)s, tagnumber=%(tagnumber)s, territory=%(territory)s, familyid=%(familyid)s
+            SET name=%(name)s, tagnumber=%(tagnumber)s, territory=%(territory)s
              WHERE externalid=%(externalid)s"""
         self.cursor.execute(sql_update, record)
         if self.cursor.rowcount > 0:
@@ -573,7 +573,7 @@ class Person(Database):
             inner join family f on f.tagnumber=family_tag
             inner join person p on p.tagnumber=person_tag
             inner join event e on e.eventid = r.eventid
-            where event_date>=%s
+            where last_modified >= %s 
             order by event_date desc limit 500
         """
         self.cursor.execute(sql, (from_date,))
