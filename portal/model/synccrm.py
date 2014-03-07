@@ -166,7 +166,7 @@ class SyncCRM(object):
         sync_start = time.strftime('%Y-%m-%d %H:%M:%S')
 
         # Get the updated team-serving options
-        records = self.crm.team_serving_options(from_date)
+        records = self.crm.team_serving_options(None)
         
         # Store the list of group Ids
         db = Person()
