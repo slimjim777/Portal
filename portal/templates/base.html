@@ -13,7 +13,7 @@
       $(function() {
         $( "#accordion" ).accordion();
         $( "#accordion1" ).accordion({heightStyle: "content"});
-        $( "#accordion2" ).accordion();
+        $( "#accordion2" ).accordion({heightStyle: "content"});
         $( "#radio" ).buttonset();
         $( "#progressbar" ).progressbar({
             value: false
@@ -24,6 +24,9 @@
         });
         $( "#r-contact" ).click( function() {
             document.location.href = '/contact/';          
+        });
+        $( "#r-events" ).click( function() {
+            document.location.href = '/events/';          
         });
         $( "#r-kidswork" ).click( function() {
             document.location.href = '/kidswork/';          
@@ -55,6 +58,7 @@
                     {% if session.role=='Admin' or session.groups %}
                     <input type="radio" id="r-contact" name="radio" /><label for="r-contact">Contact</label>
                     {% endif %}
+                    <input type="radio" id="r-events" name="radio" /><label for="r-events">Events</label>
                     {% if 'Kidswork' in session.access %}
                     <input type="radio" id="r-kidswork" name="radio" /><label for="r-kidswork">Kidswork</label>
                     {% endif %}

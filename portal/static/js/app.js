@@ -189,13 +189,15 @@ function contactToggleServing(el) {
           var table = '<table class="grid"><tr><th>Name</th><th>Email</th><th>Home Phone</th><th>Mobile Phone</th></tr>';
           for (dd in data.result) {
               var d = data.result[dd];
-              table += '<tr><td><a id="c-' + d.personid +'" href="/people/'+ d.personid +'">' + d.name + '</a></td>' +
+
+              table += '<td><a id="c-' + d.personid +'" href="/people/'+ d.personid +'">' + d.name + '</a></td>' +
                       '<td>' + d.email + '</td><td>' + d.home_phone + '</td><td>' + d.mobile_phone + '</td></tr>';
               if (d.email) {
                 emails.push( d.name + ' \<' + d.email + '\>' );
               }
           }
           table += '</table>';
+          console.log(table);
           p.append(table);
           $('#c-email').text(emails.join(', '));
         
@@ -238,3 +240,53 @@ function personToggleProfile(personid, externalid, field, state) {
       }
     });
 }
+
+function registrationFindPerson(name) {
+
+    var postdata = {
+        name: name
+    };
+    
+    $( "#progressbar" ).show();
+    var p = $('#a-people');
+    p.empty();
+
+    var request = $.ajax({
+      type: 'POST',
+      url: '/rest/v1.0/person/find',
+      data: JSON.stringify(postdata),
+      contentType:"application/json",
+      dataType: "json",
+      success: function(data) {
+        if(data.response=='Failed') {
+            var $message = $('#messages');
+            $message.text(data.error);
+            $message.attr('class', 'ui-state-error ui-corner-all');
+            $message.show().fadeOut(2000);
+            $(el).attr('class', classNameUndo);
+        } else {
+            var table = '<table class="grid"><tr><th></th><th>Name</th><th>Contact Type</th><th>Gender</th><th>School Year</th></tr>';
+            for (dd in data.result) {
+                var d = data.result[dd];
+                table += "<tr><td><button class=\"a-add\" onclick=\"registrationAdd('{{ " +d.Id +"  }}')\">Add</button></td>";
+                table += '<td><a id="c-' + d.ExternalId__c +'" href="/people/'+ d.ExternalId__c +'">' + d.Name + '</a></td>' +
+                        '<td>' + d.Contact_Type__c + '</td><td>' + empty(d.Gender__c) + '</td><td>' + empty(d.School_Year__c) + '</td></tr>';
+            }
+            table += '</table>';
+            p.append(table);
+            $( ".a-add" ).button({icons: {primary: 'ui-icon-plus'}, text: false});
+
+            $( "#progressbar" ).hide();
+        }
+      }
+    });
+}
+
+function empty(field) {
+    if (!field) {
+        return ''
+    } else {
+        return field;
+    }
+}
+

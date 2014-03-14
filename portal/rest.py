@@ -137,16 +137,18 @@ def person_find():
     if not request.json:
         abort(400)
 
-    person = Person()
+    #person = Person()
+    person = SFPerson()
     result = person.find(request.json.get('name', ''))
-    rows = []
-    for r in result:
-        rows.append({
-            'personid': r['personid'],
-            'name': r['name'],
-            'email': r['email'],
-        })
-    return jsonify(result=rows)
+    #rows = []
+    #for r in result:
+    #    rows.append({
+    #        'personid': r['personid'],
+    #        'name': r['name'],
+    #        'email': r['email'],
+    #    })
+    #return jsonify(result=rows)
+    return jsonify(result=result)
 
 
 @app.route("/rest/v1.0/person/groups", methods=['POST'])

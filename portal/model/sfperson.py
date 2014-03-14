@@ -8,11 +8,13 @@ class SFPerson(object):
         self.login()
 
     def login(self):
+        sandbox = os.environ.get('SF_SANDBOX', False)
+
         self.connection = Salesforce(
             username=os.environ['SF_USERNAME'],
             password=os.environ['SF_PASSWORD'],
             security_token=os.environ['SF_TOKEN'],
-            sandbox=False
+            sandbox=sandbox
         )
 
     def registrations_sync(self, rows):
@@ -203,3 +205,52 @@ class SFPerson(object):
 
         self.connection.Contact.update(externalid, sf_record)
         return {'response': 'Success'}
+
+    def events(self, event_id=None):
+        """
+        Get the events from Salesforce.
+        """
+        soql = "select Id, Name, Type__c from Event__c where Active__c = true"
+        if event_id:
+            soql += " and Id='%s'" % event_id
+        result = self.connection.query_all(soql)
+        records = []
+
+        for r in result.get('records', []):
+            rec =  dict(r)
+            records.append(rec)
+
+        return records
+
+    def event_attendees(self, event_id, event_date):
+        """
+        Get all the attendees for an event.
+        """
+        soql = """
+            select Id, Event_Date__c, Status__c, Event__r.Name, Contact__r.Id, Contact__r.Name, Contact__r.ExternalId__c 
+            from Registration__c
+            where Event__r.Id = '%s' 
+            and Event_Date__c = %s
+        """ % (event_id, event_date)
+        result = self.connection.query_all(soql)
+        records = []
+
+        for r in result.get('records', []):
+            rec =  dict(r)
+            records.append(rec)
+
+        return records
+
+    def find(self, name):
+        """
+        Search for a contact by name.
+        """
+        soql = """
+            select Id, Name, Email, Phone, Gender__c, School_Year__c, Contact_Type__c, ExternalId__c
+            from Contact
+            where Name like '%s%s%s'
+        """ % ('%',name,'%')
+        results = self.connection.query_all(soql)
+        return results.get('records', [])
+
+

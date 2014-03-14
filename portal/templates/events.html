@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">Events</h2>
+
+<div id="accordion1">
+  <h3>Select the Event</h3>
+
+  <div id="c-events">
+    <table class="grid">
+    <tr>
+        <th>Name</th><th>Type</th>
+    </tr>
+    {% for e in events %}
+      <tr>
+         <td><a href="/events/{{ e.Id }}">{{ e.Name }}</a></td><td>{{ e.Type__c }}</td>
+      </tr>
+    {% endfor %}
+</table>
+  </div>
+</div>
+
+<br />
+
+{% endblock %}

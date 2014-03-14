@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block body %}
+
+<h2 class="heading">{{ event.Name }} {{ event_date }}</h2>
+
+<div id="accordion1">
+  <h3>Select People</h3>
+
+  <div id="a-find-people">
+        <form method="POST" id="find_person">
+            <input type="text" name="search" value="" placeholder="Find Person" id="find_name" size="40" class="ui-corner-all" />
+        </form>
+        <div id="a-people">
+        </div>
+  </div>
+
+</div>
+
+<div id="accordion2">
+  <h3>Registered</h3>
+
+  <div id="a-attendees">
+    <table class="grid">
+    <tr>
+        <th>Name</th><th>Status</th><th></th>
+    </tr>
+    {% for a in attendees %}
+      <tr>
+         <td><a href="/people/{{ a.Contact__r.ExternalId__c }}">{{ a.Contact__r.Name }}</a></td>
+         <td>{{ a.Status__c }}</td>
+         <td><button onclick="registrationDelete('{{ a.Id }}')" class="a-remove">Remove</button></td>
+      </tr>
+    {% endfor %}
+    </table>
+  </div>
+</div>
+
+<script>
+    $( document ).ready(function() {
+        $( ".a-remove" ).button({icons: {primary: 'ui-icon-circle-close'}, text: false});
+
+        $('#find_name').keypress(function (e) {
+            if (e.which == 13) {
+              var find_this = $(this).val();
+              registrationFindPerson(find_this);
+              return false;
+            }
+        });
+    });
+
+    function registrationDelete(regId) {
+        alert(regId);
+    }
+</script>
+
+{% endblock %}

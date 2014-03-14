@@ -7,6 +7,7 @@ from portal import app
 from portal.model.dbperson import Person
 from portal.model.dbuser import User
 from portal.model.dbevent import Event
+from portal.model.sfperson import SFPerson
 import os
 import time
 
@@ -253,6 +254,29 @@ def contact():
         groups = session['groups']
 
     return render_template('contact.html', env=env, groups=groups)
+
+
+@app.route("/events/", methods=['GET'])
+@app.route("/events/<event_id>", methods=['GET'])
+def event_attendance(event_id=None):
+    if not is_authenticated():
+        flash('Please login to access the Portal')
+        return redirect(url_for('index'))
+
+    # Check permissions
+    if not is_member():
+        abort(403)
+
+    # Get the events from Salesforce
+    sf_person = SFPerson()
+    events = sf_person.events(event_id)
+
+    if not event_id:
+        return render_template('events.html', env=env, events=events)
+    else:
+        event_date = time.strftime('%Y-%m-%d')
+        attendees = sf_person.event_attendees(event_id, event_date)
+        return render_template('event_attendees.html', env=env, event=events[0], event_date=event_date, attendees=attendees)
 
 
 @app.route("/kidswork/", methods=['GET', 'POST'])
