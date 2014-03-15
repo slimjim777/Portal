@@ -275,8 +275,8 @@ def event_attendance(event_id=None):
         return render_template('events.html', env=env, events=events)
     else:
         event_date = time.strftime('%Y-%m-%d')
-        attendees = sf_person.event_attendees(event_id, event_date)
-        return render_template('event_attendees.html', env=env, event=events[0], event_date=event_date, attendees=attendees)
+        #attendees = sf_person.event_attendees(event_id, event_date)
+        return render_template('event_attendees.html', env=env, event=events[0], event_date=event_date)
 
 
 @app.route("/kidswork/", methods=['GET', 'POST'])

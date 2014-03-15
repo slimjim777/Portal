@@ -253,4 +253,47 @@ class SFPerson(object):
         results = self.connection.query_all(soql)
         return results.get('records', [])
 
+    def registration_remove(self, reg_id):
+        """
+        Delete the registration record, if it exists.
+        """
+        try:
+            self.connection.Registration__c.delete(reg_id)
+        except:
+            return {'response': 'Success'}
+
+    def registration_add(self, event_id, event_date, people):
+        """
+        Add the registration record for the contact, if it doesn't exist.
+        """
+        contacts = ''
+        for p in people:
+            if len(contacts) == 0:
+                contacts = "'%s'" % p
+            else:
+                contacts += ",'%s'" % p
+
+        soql = """
+            select Id, Contact__c  from Registration__c
+            where Event__c = '%s'
+            and Contact__c in (%s)
+            and Event_Date__c = %s
+        """ % (event_id, contacts, event_date)
+        app.logger.debug(soql)
+        result = self.connection.query_all(soql)
+
+        for r in result.get('records', []):
+            # Skip the people that we have already registered
+            if r['Contact__c'] in people:
+                people.remove(r['Contact__c'])
+
+        # Add the registrations for the people that do not have them
+        for p in people:
+            self.connection.Registration__c.create({
+                    'Event__c': event_id,
+                    'Contact__c': p,
+                    'Event_Date__c': event_date,
+                    'Status__c': 'Attended',
+                    })
+
 

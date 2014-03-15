@@ -20,6 +20,12 @@
   </div>
 </div>
 
-<br />
+<script>
+    $( document ).ready(function() {
+        // Select the page in the radio button
+        $( "#r-events" )[0].checked = true;
+        $( "#radio" ).buttonset("refresh");
+    });
+</script>
 
 {% endblock %}

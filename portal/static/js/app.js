@@ -268,7 +268,7 @@ function registrationFindPerson(name) {
             var table = '<table class="grid"><tr><th></th><th>Name</th><th>Contact Type</th><th>Gender</th><th>School Year</th></tr>';
             for (dd in data.result) {
                 var d = data.result[dd];
-                table += "<tr><td><button class=\"a-add\" onclick=\"registrationAdd('{{ " +d.Id +"  }}')\">Add</button></td>";
+                table += "<tr><td><button class=\"a-add\" onclick=\"registrationAdd('" + d.Id + "')\">Add</button></td>";
                 table += '<td><a id="c-' + d.ExternalId__c +'" href="/people/'+ d.ExternalId__c +'">' + d.Name + '</a></td>' +
                         '<td>' + d.Contact_Type__c + '</td><td>' + empty(d.Gender__c) + '</td><td>' + empty(d.School_Year__c) + '</td></tr>';
             }
@@ -288,5 +288,104 @@ function empty(field) {
     } else {
         return field;
     }
+}
+
+function registrationRegistered(event_id) {
+    var postdata = {
+        event_id: event_id
+    };
+
+    var p = $('#a-people-attendees');
+    p.empty();
+
+    // Add progress bar
+    var $progress = $("<div>", {id: "a-progress"});
+    $progress.progressbar({value: false});
+    p.append($progress)
+
+    var request = $.ajax({
+      type: 'POST',
+      url: '/rest/v1.0/registrations',
+      data: JSON.stringify(postdata),
+      contentType:"application/json",
+      dataType: "json",
+      success: function(data) {
+        if(data.response=='Failed') {
+            var $message = $('#messages');
+            $message.text(data.error);
+            $message.attr('class', 'ui-state-error ui-corner-all');
+            $message.show().fadeOut(2000);
+            $(el).attr('class', classNameUndo);
+        } else {
+            var table = '<table class="grid"><tr><th>Name</th><th>Status</th><th></th></tr>';
+            for (dd in data.result) {
+                var d = data.result[dd];
+                table += '<tr><td>' + d.Contact__r.Name + '</td><td>' + d.Status__c + '</td><td><button onclick="registrationDelete(\'' + d.Id + '\')" class="a-remove">Remove</button></td></tr>';
+            }
+            table += '</table>';
+            p.append(table);
+            $( ".a-remove" ).button({icons: {primary: 'ui-icon-close'}, text: false});
+            $($progress).remove();
+        }
+      }
+    });
+
+}
+
+function registrationDelete(regId) {
+
+    var postdata = {
+        reg_id: regId
+    };
+
+    var request = $.ajax({
+      type: 'DELETE',
+      url: '/rest/v1.0/registrations/' + regId,
+      data: JSON.stringify(postdata),
+      contentType:"application/json",
+      dataType: "json",
+      success: function(data) {
+        if(data.response=='Failed') {
+            var $message = $('#messages');
+            $message.text(data.error);
+            $message.attr('class', 'ui-state-error ui-corner-all');
+            $message.show().fadeOut(2000);
+            $(el).attr('class', classNameUndo);
+        } else {
+            console.log(data);
+        }
+      }
+    });
+
+}
+
+function registrationAdd(contactId) {
+    var eventId = $("#event_id").val();
+    var postdata = {
+        event_id: eventId,
+        people: [contactId]
+    };
+
+    var request = $.ajax({
+      type: 'POST',
+      url: '/rest/v1.0/registrations/add',
+      data: JSON.stringify(postdata),
+      contentType:"application/json",
+      dataType: "json",
+      success: function(data) {
+        var $message = $('#messages');
+        if(data.response=='Failed') {
+            $message.text(data.error);
+            $message.attr('class', 'ui-state-error ui-corner-all');
+            $message.show().fadeOut(2000);
+        } else {
+            console.log(data);
+            registrationRegistered(eventId);
+            $message.text('Registration successful.');
+            $message.show().fadeOut(2000);            
+        }
+      }
+    });
+
 }
 

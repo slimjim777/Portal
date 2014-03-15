@@ -261,3 +261,14 @@ nav#main .searchform .icon-search {
 #radio .ui-button-text {
     font-size: 14px;
 }
+
+#a-refresh, #a-refresh:hover {
+    background: None;
+    border-width: 3px;
+}
+
+#a-refresh:hover {
+    border-color: #ffffff;
+}
+
+

@@ -8,6 +8,7 @@
 
   <div id="a-find-people">
         <form method="POST" id="find_person">
+            <input type="hidden" name="event_id" value="{{ event.Id }}" id="event_id" />
             <input type="text" name="search" value="" placeholder="Find Person" id="find_name" size="40" class="ui-corner-all" />
         </form>
         <div id="a-people">
@@ -17,28 +18,27 @@
 </div>
 
 <div id="accordion2">
-  <h3>Registered</h3>
+  <h3>Registered <button id="a-refresh" onclick="registrationRegistered('{{ event.Id }}')">Refresh</button></h3>
 
   <div id="a-attendees">
-    <table class="grid">
-    <tr>
-        <th>Name</th><th>Status</th><th></th>
-    </tr>
-    {% for a in attendees %}
-      <tr>
-         <td><a href="/people/{{ a.Contact__r.ExternalId__c }}">{{ a.Contact__r.Name }}</a></td>
-         <td>{{ a.Status__c }}</td>
-         <td><button onclick="registrationDelete('{{ a.Id }}')" class="a-remove">Remove</button></td>
-      </tr>
-    {% endfor %}
-    </table>
+        <div id="a-people-attendees">
+        </div>
   </div>
 </div>
 
 <script>
     $( document ).ready(function() {
-        $( ".a-remove" ).button({icons: {primary: 'ui-icon-circle-close'}, text: false});
+        registrationRegistered('{{ event.Id }}');
 
+        // Select the page in the radio button
+        $( "#r-events" )[0].checked = true;
+        $( "#radio" ).buttonset("refresh");
+
+        // Decorate the buttons
+        $( ".a-remove" ).button({icons: {primary: 'ui-icon-circle-close'}, text: false});
+        $( "#a-refresh" ).button({icons: {primary: 'ui-icon-refresh'}, text: false});
+
+        // Handle the search form
         $('#find_name').keypress(function (e) {
             if (e.which == 13) {
               var find_this = $(this).val();
@@ -48,9 +48,6 @@
         });
     });
 
-    function registrationDelete(regId) {
-        alert(regId);
-    }
 </script>
 
 {% endblock %}

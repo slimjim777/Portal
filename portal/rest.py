@@ -370,9 +370,20 @@ def registrations():
     if ('event_id' not in request.json):
         return jsonify({'response': 'Failed', 'error': "The 'event_id' must be supplied."})
 
-    person = Person()
-    result = person.registrations(request.json['event_id'])
-    return jsonify(result=result)
+    event_id = request.json['event_id']
+    if isinstance(event_id, int):
+        # Get the reservations from the local db
+        person = Person()
+        result = person.registrations(event_id)
+        return jsonify(result=result)
+    else:
+        # Get the event attendees from Salesforce
+        sf_person = SFPerson()
+
+        event_date = time.strftime('%Y-%m-%d')
+        attendees = sf_person.event_attendees(event_id, event_date)
+
+        return jsonify(result=attendees)
 
 
 @app.route("/rest/v1.0/scan", methods=['POST'])
@@ -449,3 +460,48 @@ def _register(action):
     else:
         result = {'error': 'Action is not available: %s' % action}
     return jsonify(result)
+
+
+@app.route("/rest/v1.0/registrations/<reg_id>", methods=['DELETE'])
+def registration_remove(reg_id):
+    """
+    Called by the portal.
+    Remove a registration from Salesforce.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+
+    app.logger.debug(reg_id)
+    sf_person = SFPerson()
+    result = sf_person.registration_remove(reg_id)
+    
+    return jsonify(result=result)
+
+
+@app.route("/rest/v1.0/registrations/add", methods=['POST'])
+def registration_add():
+    """
+    Called by the portal.
+    Add a registration from Salesforce.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+
+    if ('event_id' not in request.json) or ('people' not in request.json):
+        return jsonify({'response': 'Failed', 'error': "Both 'event_id' and 'people' list must be supplied."})
+
+    sf_person = SFPerson()
+    event_date = time.strftime('%Y-%m-%d')
+    result = sf_person.registration_add(request.json['event_id'], event_date,  request.json['people'])
+    
+    return jsonify(result=result)
+
+
