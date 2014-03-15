@@ -1,7 +1,16 @@
 {% extends "base.html" %}
 {% block body %}
 
-<h2 class="heading">{{ event.Name }} {{ event_date }}</h2>
+<table id="a-heading">
+    <tr>
+        <td>
+          <h2 class="heading">{{ event.Name }} on {{ event_date }}</h2>
+        </td>
+        <td>
+          <div id="a-people-attendee-count" onclick="registrationRegisteredCount('{{ event.Id }}')"></div>
+        </td>
+    </tr>
+</table>
 
 <div id="accordion1">
   <h3>Select People</h3>
@@ -14,10 +23,9 @@
         <div id="a-people">
         </div>
   </div>
+<!-- /div>
 
-</div>
-
-<div id="accordion2">
+<div id="accordion2" -->
   <h3>Registered <button id="a-refresh" onclick="registrationRegistered('{{ event.Id }}')">Refresh</button></h3>
 
   <div id="a-attendees">
@@ -28,7 +36,8 @@
 
 <script>
     $( document ).ready(function() {
-        registrationRegistered('{{ event.Id }}');
+        //registrationRegistered('{{ event.Id }}');
+        registrationRegisteredCount('{{ event.Id }}');
 
         // Select the page in the radio button
         $( "#r-events" )[0].checked = true;

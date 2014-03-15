@@ -197,7 +197,6 @@ function contactToggleServing(el) {
               }
           }
           table += '</table>';
-          console.log(table);
           p.append(table);
           $('#c-email').text(emails.join(', '));
         
@@ -228,7 +227,6 @@ function personToggleProfile(personid, externalid, field, state) {
       success: function(data) {
         if(data.response=='Failed') {
             var $message = $('#messages');
-            console.log(data);
             $message.text(data.message);
             $message.attr('class', 'ui-state-error ui-corner-all');
             $message.show().fadeOut(2000);
@@ -270,7 +268,7 @@ function registrationFindPerson(name) {
                 var d = data.result[dd];
                 table += "<tr><td><button class=\"a-add\" onclick=\"registrationAdd('" + d.Id + "')\">Add</button></td>";
                 table += '<td><a id="c-' + d.ExternalId__c +'" href="/people/'+ d.ExternalId__c +'">' + d.Name + '</a></td>' +
-                        '<td>' + d.Contact_Type__c + '</td><td>' + empty(d.Gender__c) + '</td><td>' + empty(d.School_Year__c) + '</td></tr>';
+                        '<td>' + d.Contact_Type__c + '</td><td>' + empty(d.Gender__c) + '</td><td>' + schoolYear(d.Contact_Type__c, d.School_Year__c) + '</td></tr>';
             }
             table += '</table>';
             p.append(table);
@@ -287,6 +285,14 @@ function empty(field) {
         return ''
     } else {
         return field;
+    }
+}
+
+function schoolYear(contactType, schoolYr) {
+    if ((contactType == 'Child') || (contactType == 'Youth')) {
+        return schoolYr;
+    } else {
+        return '';
     }
 }
 
@@ -332,6 +338,43 @@ function registrationRegistered(event_id) {
 
 }
 
+function registrationRegisteredCount(event_id) {
+    var postdata = {
+        event_id: event_id
+    };
+
+    var p = $('#a-people-attendee-count');
+    p.empty();
+
+    // Add progress bar
+    var $progress = $("<div>", {id: "a-progress"});
+    $progress.progressbar({value: false});
+    p.append($progress)
+
+    var request = $.ajax({
+      type: 'POST',
+      url: '/rest/v1.0/registrations/count',
+      data: JSON.stringify(postdata),
+      contentType:"application/json",
+      dataType: "json",
+      success: function(data) {
+        if(data.response=='Failed') {
+            var $message = $('#messages');
+            $message.text(data.error);
+            $message.attr('class', 'ui-state-error ui-corner-all');
+            $message.show().fadeOut(2000);
+            $(el).attr('class', classNameUndo);
+        } else {
+            var number = data.result[0]['expr0']
+            var table = "<span>" + number + "</span>";
+            p.append(table);
+            $($progress).remove();
+        }
+      }
+    });
+
+}
+
 function registrationDelete(regId) {
 
     var postdata = {
@@ -352,7 +395,9 @@ function registrationDelete(regId) {
             $message.show().fadeOut(2000);
             $(el).attr('class', classNameUndo);
         } else {
-            console.log(data);
+            var eventId = $("#event_id").val();
+            registrationRegisteredCount(eventId);
+            registrationRegistered(eventId);
         }
       }
     });
@@ -379,8 +424,7 @@ function registrationAdd(contactId) {
             $message.attr('class', 'ui-state-error ui-corner-all');
             $message.show().fadeOut(2000);
         } else {
-            console.log(data);
-            registrationRegistered(eventId);
+            registrationRegisteredCount(eventId);
             $message.text('Registration successful.');
             $message.show().fadeOut(2000);            
         }

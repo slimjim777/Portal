@@ -271,4 +271,21 @@ nav#main .searchform .icon-search {
     border-color: #ffffff;
 }
 
+#a-heading {
+    width: 100%;
+}
+
+#a-people-attendee-count {
+    float: right;
+    width: 150px;
+    text-align: center;
+    font-size: 48px;
+    padding: 20px;
+    background: rgb(59, 170, 227);
+    color: #fff;
+    font-family:'Lucida Grande', 'Lucida Sans', Arial, sans-serif; 
+    background-image:url(/static/css/cupertino/images/ui-bg_glass_50_3baae3_1x400.png);
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+}
 

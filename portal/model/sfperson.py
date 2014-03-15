@@ -241,6 +241,25 @@ class SFPerson(object):
 
         return records
 
+    def event_attendees_count(self, event_id, event_date):
+        """
+        Count all the attendees for an event.
+        """
+        soql = """
+            select count(Id) 
+            from Registration__c
+            where Event__r.Id = '%s' 
+            and Event_Date__c = %s
+        """ % (event_id, event_date)
+        result = self.connection.query_all(soql)
+        records = []
+
+        for r in result.get('records', []):
+            rec =  dict(r)
+            records.append(rec)
+
+        return records
+
     def find(self, name):
         """
         Search for a contact by name.

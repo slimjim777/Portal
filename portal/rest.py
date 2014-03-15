@@ -385,6 +385,31 @@ def registrations():
 
         return jsonify(result=attendees)
 
+@app.route("/rest/v1.0/registrations/count", methods=['POST'])
+def registrations_count():
+    """
+    Get the count of people registered for the event.
+    """
+    login_action()
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+    if ('event_id' not in request.json):
+        return jsonify({'response': 'Failed', 'error': "The 'event_id' must be supplied."})
+
+    event_id = request.json['event_id']
+    
+    # Get the event attendees from Salesforce
+    sf_person = SFPerson()
+
+    event_date = time.strftime('%Y-%m-%d')
+    attendees_count = sf_person.event_attendees_count(event_id, event_date)
+
+    return jsonify(result=attendees_count)
+
 
 @app.route("/rest/v1.0/scan", methods=['POST'])
 def scan():
@@ -475,7 +500,6 @@ def registration_remove(reg_id):
     if not request.json:
         abort(400)
 
-    app.logger.debug(reg_id)
     sf_person = SFPerson()
     result = sf_person.registration_remove(reg_id)
     
