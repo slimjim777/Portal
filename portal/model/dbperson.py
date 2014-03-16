@@ -483,7 +483,7 @@ class Person(Database):
 
         if row:
             # Get the children for the parent
-            self.cursor.execute("SELECT * FROM person WHERE family_tag=%s and territory='Kidswork", (family_number,))
+            self.cursor.execute("SELECT * FROM person WHERE family_tag=%s and territory='Kidswork'", (family_number,))
             children = []
 
             for c in self.cursor:
