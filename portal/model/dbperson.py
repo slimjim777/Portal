@@ -483,7 +483,7 @@ class Person(Database):
 
         if row:
             # Get the children for the parent
-            self.cursor.execute("SELECT * FROM person WHERE family_tag=%s", (family_number,))
+            self.cursor.execute("SELECT * FROM person WHERE family_tag=%s and territory='Kidswork", (family_number,))
             children = []
 
             for c in self.cursor:
@@ -524,7 +524,7 @@ class Person(Database):
         if person_id:
             self.cursor.execute("SELECT * FROM person WHERE personid=%s", (person_id,))
         elif tag_number:
-            self.cursor.execute("SELECT * FROM person WHERE tagnumber=%s", (tag_number,))
+            self.cursor.execute("SELECT * FROM person WHERE tagnumber=%s and territory='Kidswork'", (tag_number,))
         else:
             return {'error': 'Person ID or Tag Number must be supplied for Person search.'}
 
