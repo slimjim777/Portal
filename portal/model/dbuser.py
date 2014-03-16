@@ -164,11 +164,23 @@ class User(Database):
         self.sqlconn.commit()
         return {'response':'Success'}
 
+    def event_access_update(self, personid, event_access):
+        """
+        Update the event access for a user.
+        """
+        access = {'rw': 2, 'ro': 1}.get(event_access)
+        
+        # Save the update territory list
+        sql = 'update visitor set event_access=%s where personid=%s'
+        self.cursor.execute(sql, (access, personid,))
+        self.sqlconn.commit()
+        return {'response':'Success'}
+
     def new(self, rec):
         """
         Create the user account.
         """
-        sql = 'insert into visitor values (%s,%s,%s,%s,%s,%s,%s)'
+        sql = 'insert into visitor values (%s,%s,%s,%s,%s,%s,%s,%s)'
 
         if rec.get('password'):
             pwd = self._hashed(rec['password'])
@@ -179,7 +191,9 @@ class User(Database):
                                         rec.get('access','Active'),
                                         rec.get('role','Standard'),
                                         rec.get('partner_access'),
-                                        rec.get('keyleader_access'),))
+                                        rec.get('keyleader_access'),
+                                        rec.get('event_access'),
+                               ))
             self.sqlconn.commit()
         except Exception as e:
             return str(e)

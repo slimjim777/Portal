@@ -92,6 +92,48 @@ function adminToggleKeyLeader(el, nextState, personId) {
     });
 }
 
+function adminToggleEvent(el, nextState, personId) {
+    var postdata = {
+        personid: personId,
+        action: nextState,
+        type: 'event'
+    };
+    
+    var classNameUndo;
+    
+    if ((nextState == 'rw') || (nextState == 'ro')) {
+        // Enable manage rights to event
+        classNameUndo = '';
+        $(el).attr('class', 'ui-corner-all ui-state-active');
+    } else {
+        // Disable rights to event registration
+        classNameUndo = 'ui-corner-all ui-state-default';
+        $(el).attr('class', '');
+    }
+    
+    $( "#progressbar" ).show();
+    
+    var request = $.ajax({
+      type: 'POST',
+      url: '/rest/v1.0/user_access',
+      data: JSON.stringify(postdata),
+      contentType:"application/json",
+      dataType: "json",
+      success: function(data) {
+        if(data.response=='Failed') {
+            var $message = $('#messages');
+            $message.text(data.error);
+            $message.attr('class', 'ui-state-error ui-corner-all');
+            $message.show().fadeOut(2000);
+            $(el).attr('class', classNameUndo);
+        } else {
+            document.location.href = '/accounts/' + personId;
+            $( "#progressbar" ).hide();
+        }
+      }
+    });
+}
+
 
 function contactToggleFilter(el) {
     var fieldName = $(el).text();

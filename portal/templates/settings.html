@@ -59,6 +59,34 @@
                     <div class="subcell-data">{{ row.role }}</div>
                </div>
            </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Event Access</div>
+                    {% if row.event_access %}
+                    <div class="subcell-data">Yes</div>
+                    {% endif %}
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Key Leader Access</div>
+                    {% if row.keyleader_access == 1 %}
+                    <div class="subcell-data">Contact-Only</div>
+                    {% elif row.keyleader_access == 2 %}
+                    <div class="subcell-data">Manage</div>
+                    {% endif %}
+               </div>
+           </div>
+           <div class="cell-data">
+               <div class="subcell">
+                    <div class="subcell-label">Partner Access</div>
+                    {% if row.partner_access == 1 %}
+                    <div class="subcell-data">Contact-Only</div>
+                    {% elif row.partner_access == 2 %}
+                    <div class="subcell-data">Manage</div>
+                    {% endif %}
+               </div>
+           </div>
          </div>
        </div>       
      </div>

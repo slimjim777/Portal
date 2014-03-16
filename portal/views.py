@@ -38,6 +38,7 @@ def index():
             session['permissions'] = {
                 'partner': u['partner_access'],
                 'key_leader': u['keyleader_access'],
+                'event': u['event_access'],
             }
 
             # Set the team-serving groups this person can update
@@ -264,7 +265,7 @@ def event_attendance(event_id=None):
         return redirect(url_for('index'))
 
     # Check permissions
-    if not is_member():
+    if not is_member() or not session['permissions'].get('event'):
         abort(403)
 
     # Get the events from Salesforce

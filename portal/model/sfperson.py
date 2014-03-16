@@ -298,7 +298,6 @@ class SFPerson(object):
             and Contact__c in (%s)
             and Event_Date__c = %s
         """ % (event_id, contacts, event_date)
-        app.logger.debug(soql)
         result = self.connection.query_all(soql)
 
         for r in result.get('records', []):

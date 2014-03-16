@@ -32,8 +32,9 @@ def login_action():
         session['permissions'] = {
             'partner': u['partner_access'],
             'key_leader': u['keyleader_access'],
+            'event': u['event_access'],
         }
-        
+
         # Set the team-serving groups this person can update
         groups = user.groups(u['personid'])
 
@@ -298,6 +299,8 @@ def user_access():
     user = User()
     if request.json['type'] == 'partner':
         response = user.partner_access_update(request.json['personid'], request.json['action'])
+    elif request.json['type'] == 'event':
+        response = user.event_access_update(request.json['personid'], request.json['action'])
     else:
         response = user.keyleader_access_update(request.json['personid'], request.json['action'])
     return jsonify(response)
