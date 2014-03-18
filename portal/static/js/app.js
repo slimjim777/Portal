@@ -468,6 +468,7 @@ function registrationAdd(contactId) {
         } else {
             registrationRegisteredCount(eventId);
             $message.text('Registration successful.');
+            $message.attr('class', 'ui-state-highlight ui-corner-all');
             $message.show().fadeOut(2000);            
         }
       }

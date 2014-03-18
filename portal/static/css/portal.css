@@ -4,9 +4,16 @@
     margin-right: auto;
 }
 
-#flashed {
+@media screen and (max-width: 768px) {
+   .page {
+       width: 100%;
+   }
+}
+
+#flashed, #messages {
     margin-top: 20px;
     padding: 0.7em;
+    font-family: 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
 #create-user {
@@ -46,6 +53,9 @@ label, input {
   display: block;
   
 } */
+input {
+    width: 80%;
+}
 
 #radio input {
     display: inline;
@@ -205,6 +215,15 @@ nav#main .searchform .icon-search {
     width: 600px;
 }
 
+@media screen and (max-width: 768px) {
+   .cell-left, .cell-right {
+       display: table-cell;
+       width: 100%;
+       display: table-row;
+   }
+}
+
+
 #main .cell-left, #main .cell-right {
     display: table-cell;
 }
@@ -212,6 +231,8 @@ nav#main .searchform .icon-search {
 #main .cell-left {
     width: 70%;
 }
+
+
 
 
 .cell-row {
