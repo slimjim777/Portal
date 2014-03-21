@@ -5,14 +5,13 @@
   <div>
 
     {% from "_formhelpers.html" import render_field %}
+<div class="row">
     <form method=post action="/">
         {{ render_field(form.username) }}
         {{ render_field(form.password) }}
-      <p><input type="submit" value="Login"></p>
+      <p><button id="l_login">Login</button></p>
       <p><a href="#" onclick="openDialog(event)">Forgotten your password?</a>
     </form>
-
-  </div>
 </div>
 
 <div id="dialog-form" title="Reset Password">
@@ -31,6 +30,7 @@
 </div>
 
 <script>
+    $( "#l_login" ).button();
     var message = $('#d-message');
     $('#dialog-form').dialog({
       autoOpen: false,

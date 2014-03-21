@@ -1,15 +1,24 @@
 {% macro render_field(field) %}
 
-<label for="{{ field.name }}">{{ field.label }}</label>
-{{ field(**kwargs)|safe }}<br />
-
-  {% if field.errors %}
-    {% for error in field.errors %}
-      <p class="ui-state-error">{{ error }}</p>
-    {% endfor %}
-  {% endif %}
-  
+    <div class="cell-row">
+      <div class="subcell-label">
+           <label for="{{ field.name }}">{{ field.label }}</label>
+      </div>
+      <div class="subcell-data">
+           <input name="{{ field.name }}" id="{{ field.name }}" 
+               {% if field.name == 'password' %}
+               type="password"
+               {% else %}
+               type="text"
+               {% endif %}
+           />                  
+           {% if field.errors %}
+             {% for error in field.errors %}
+               <p class="ui-state-error">{{ error }}</p>
+             {% endfor %}
+           {% endif %}
+      </div>
+    </div>
 {% endmacro %}
-
 
 
