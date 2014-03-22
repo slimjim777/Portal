@@ -40,6 +40,8 @@
         $( "#r-logout" ).click( function() {
             document.location.href = '/logout/';
         });
+
+        $("#main button").button();
       });
     </script>
 
@@ -48,7 +50,7 @@
 
     <nav id="main" class="banner">
 
-        <h1>Lifechurch Portal</h1>
+        <h1 id="title">Lifechurch Portal</h1>
 
         <div class="row">
             {% if session.username %}

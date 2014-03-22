@@ -57,10 +57,6 @@ input {
     width: 80%;
 }
 
-#radio input {
-    display: inline;
-}
-
 .ui-state-error {
     margin-top: -1em;
 }
@@ -79,6 +75,33 @@ input {
     font-family: 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     color: #666;
 }
+
+@media screen and (max-width: 768px) {
+    nav#main h1 {
+        display: none;
+    }
+    
+    nav#main .cell-right {
+        display: none;
+    }
+
+    .banner {
+        padding: 0;
+        background-color: transparent;
+    }
+    
+    nav#main .cell-left {
+        width: 100%;
+        text-align: center;
+    }
+    #radio label {
+        width: 120px;
+        height: 40px;
+    }
+
+}
+
+
 
 nav#main .searchform {
 	background: none;
@@ -114,6 +137,8 @@ nav#main .searchform input {
 nav#main .searchform input:focus {
 	outline: none;
 }
+
+
 
 .no-boxshadow nav#main .searchform {
 	border: 1px solid #333;
@@ -215,9 +240,12 @@ nav#main .searchform .icon-search {
     width: 600px;
 }
 
+#menu {
+    display: none;
+} 
+
 @media screen and (max-width: 768px) {
    .cell-left, .cell-right {
-       display: table-cell;
        width: 100%;
        display: table-row;
    }
@@ -232,8 +260,11 @@ nav#main .searchform .icon-search {
     width: 70%;
 }
 
-
-
+@media screen and (max-width: 768px) {
+    #main .cell-left {
+        width: 100%;
+    }
+}
 
 .cell-row {
     display: table-row;
@@ -310,3 +341,14 @@ nav#main .searchform .icon-search {
     border-radius: 15px;
 }
 
+@media screen and (max-width: 768px) {
+    #a-people-attendee-count {
+        width: 80px;
+        font-size: 24px;
+    }
+
+    #messages {
+        margin-top: 0;
+        padding: 0;
+    }
+}
