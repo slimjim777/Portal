@@ -4,13 +4,39 @@
 <table id="a-heading">
     <tr>
         <td>
-          <h2 class="heading">{{ event.Name }} on {{ event_date }}</h2>
+          <h2 class="heading">{{ event.Name }}</h2>
         </td>
         <td>
           <div id="a-people-attendee-count" onclick="registrationRegisteredCount('{{ event.Id }}')"></div>
         </td>
     </tr>
 </table>
+
+<div class="row">
+   <div id="event_detail" class="cell-row">
+      <div class="subcell-label">
+           <label for="event_date">Event Date</label>
+      </div>
+      <div class="subcell-data">
+           <input type="text" id="event_date" value="{{ event_date }}" readonly="readonly" />
+      </div>
+   </div>
+</div>
+
+<div class="row">
+   <div id="statuses" class="cell-row">
+      <div class="subcell-label">
+           <label for="statuses">Registration Status</label>
+      </div>
+      <div class="subcell-data">
+      {% for s in statuses %}
+      <input type="radio" id="{{ s.replace(' ','') }}" name="statuses" /><label for="{{ s.replace(' ','') }}">{{ s }}</label>
+      {% endfor %}
+      </div>
+   </div>
+</div>
+
+<br />
 
 <div id="accordion1">
   <h3>Select People</h3>
@@ -23,9 +49,6 @@
         <div id="a-people">
         </div>
   </div>
-<!-- /div>
-
-<div id="accordion2" -->
   <h3>Registered <button id="a-refresh" onclick="registrationRegistered('{{ event.Id }}')">Refresh</button></h3>
 
   <div id="a-attendees">
@@ -43,9 +66,16 @@
         $( "#r-events" )[0].checked = true;
         $( "#radio" ).buttonset("refresh");
 
+        $( "#statuses" ).buttonset();
+        $( "#Attended" )[0].checked = true;
+        $( "#statuses" ).buttonset("refresh");
+        $( "#event_date").datepicker({dateFormat: "yy-mm-dd"});
+
         // Decorate the buttons
         $( ".a-remove" ).button({icons: {primary: 'ui-icon-circle-close'}, text: false});
         $( "#a-refresh" ).button({icons: {primary: 'ui-icon-refresh'}, text: false});
+
+        registrationStatus();
 
         // Handle the search form
         $('#find_name').keypress(function (e) {

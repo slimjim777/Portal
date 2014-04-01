@@ -24,6 +24,22 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 SET search_path = public, pg_catalog;
 
+--
+-- Name: update_last_modified(); Type: FUNCTION; Schema: public; Owner: cyglffdwsktfeo
+--
+
+CREATE FUNCTION update_last_modified() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.last_modified = now();
+  return NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_last_modified() OWNER TO cyglffdwsktfeo;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -64,11 +80,25 @@ ALTER SEQUENCE event_eventid_seq OWNED BY event.eventid;
 
 
 --
+-- Name: family_familyid_seq; Type: SEQUENCE; Schema: public; Owner: cyglffdwsktfeo
+--
+
+CREATE SEQUENCE family_familyid_seq
+    START WITH 1000
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.family_familyid_seq OWNER TO cyglffdwsktfeo;
+
+--
 -- Name: family; Type: TABLE; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
 --
 
 CREATE TABLE family (
-    familyid integer NOT NULL,
+    familyid integer DEFAULT nextval('family_familyid_seq'::regclass) NOT NULL,
     name character varying(200),
     tagnumber integer,
     territory character varying(30),
@@ -110,6 +140,40 @@ ALTER TABLE public.groups_groupsid_seq OWNER TO cyglffdwsktfeo;
 --
 
 ALTER SEQUENCE groups_groupsid_seq OWNED BY groups.groupsid;
+
+
+--
+-- Name: lifegroup; Type: TABLE; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
+--
+
+CREATE TABLE lifegroup (
+    lifegroupid integer NOT NULL,
+    name character varying(40),
+    externalid character varying(20)
+);
+
+
+ALTER TABLE public.lifegroup OWNER TO cyglffdwsktfeo;
+
+--
+-- Name: lifegroup_lifegroupid_seq; Type: SEQUENCE; Schema: public; Owner: cyglffdwsktfeo
+--
+
+CREATE SEQUENCE lifegroup_lifegroupid_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.lifegroup_lifegroupid_seq OWNER TO cyglffdwsktfeo;
+
+--
+-- Name: lifegroup_lifegroupid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cyglffdwsktfeo
+--
+
+ALTER SEQUENCE lifegroup_lifegroupid_seq OWNED BY lifegroup.lifegroupid;
 
 
 --
@@ -210,7 +274,7 @@ CREATE TABLE registration (
     status character varying(20),
     eventid integer,
     event_date date,
-    last_modified timestamp without time zone DEFAULT ('now'::text)::date NOT NULL
+    last_modified timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -320,7 +384,8 @@ CREATE TABLE visitor (
     reset character varying(60),
     reset_expiry timestamp without time zone,
     partner_access integer,
-    keyleader_access integer
+    keyleader_access integer,
+    event_access integer
 );
 
 
@@ -338,6 +403,13 @@ ALTER TABLE ONLY event ALTER COLUMN eventid SET DEFAULT nextval('event_eventid_s
 --
 
 ALTER TABLE ONLY groups ALTER COLUMN groupsid SET DEFAULT nextval('groups_groupsid_seq'::regclass);
+
+
+--
+-- Name: lifegroupid; Type: DEFAULT; Schema: public; Owner: cyglffdwsktfeo
+--
+
+ALTER TABLE ONLY lifegroup ALTER COLUMN lifegroupid SET DEFAULT nextval('lifegroup_lifegroupid_seq'::regclass);
 
 
 --
@@ -385,6 +457,14 @@ ALTER TABLE ONLY family
 
 
 --
+-- Name: lifegroup_pkey; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
+--
+
+ALTER TABLE ONLY lifegroup
+    ADD CONSTRAINT lifegroup_pkey PRIMARY KEY (lifegroupid);
+
+
+--
 -- Name: person_externalid_index; Type: CONSTRAINT; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
 --
 
@@ -416,6 +496,13 @@ CREATE UNIQUE INDEX code_index ON groups USING btree (code);
 
 
 --
+-- Name: externalid_index; Type: INDEX; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
+--
+
+CREATE UNIQUE INDEX externalid_index ON lifegroup USING btree (lifegroupid);
+
+
+--
 -- Name: family_number_index; Type: INDEX; Schema: public; Owner: cyglffdwsktfeo; Tablespace: 
 --
 
@@ -434,6 +521,13 @@ CREATE INDEX person_family_tag_index ON person USING btree (family_tag);
 --
 
 CREATE UNIQUE INDEX username_index ON visitor USING btree (username);
+
+
+--
+-- Name: registration_update_last_modified; Type: TRIGGER; Schema: public; Owner: cyglffdwsktfeo
+--
+
+CREATE TRIGGER registration_update_last_modified BEFORE UPDATE ON registration FOR EACH ROW EXECUTE PROCEDURE update_last_modified();
 
 
 --

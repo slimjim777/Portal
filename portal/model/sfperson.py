@@ -227,7 +227,7 @@ class SFPerson(object):
         Get all the attendees for an event.
         """
         soql = """
-            select Id, Event_Date__c, Status__c, Event__r.Name, Contact__r.Id, Contact__r.Name, Contact__r.ExternalId__c 
+            select Id, Event_Date__c, Status__c, Event__r.Name, Contact__r.Id, Contact__r.Firstname, Contact__r.Lastname, Contact__r.Contact_Type__c, Contact__r.Journey__c, Contact__r.ExternalId__c 
             from Registration__c
             where Event__r.Id = '%s' 
             and Event_Date__c = %s
@@ -265,9 +265,10 @@ class SFPerson(object):
         Search for a contact by name.
         """
         soql = """
-            select Id, Name, Email, Phone, Gender__c, School_Year__c, Contact_Type__c, ExternalId__c
+            select Id, Name, Email, Phone, Gender__c, School_Year__c, Contact_Type__c, ExternalId__c, Journey__c
             from Contact
             where Name like '%s%s%s'
+            order by LastName
         """ % ('%',name,'%')
         results = self.connection.query_all(soql)
         return results.get('records', [])
@@ -281,7 +282,7 @@ class SFPerson(object):
         except:
             return {'response': 'Success'}
 
-    def registration_add(self, event_id, event_date, people):
+    def registration_add(self, event_id, event_date, event_status, people):
         """
         Add the registration record for the contact, if it doesn't exist.
         """
@@ -304,14 +305,36 @@ class SFPerson(object):
             # Skip the people that we have already registered
             if r['Contact__c'] in people:
                 people.remove(r['Contact__c'])
+                self.connection.Registration__c.update(
+                    r['Id'],
+                    {
+                        'Event__c': event_id,
+                        'Contact__c': r['Contact__c'],
+                        'Event_Date__c': event_date,
+                        'Status__c': event_status,
+                    })
 
-        # Add the registrations for the people that do not have them
+        # Upsert registrations for the people that do not have them
         for p in people:
             self.connection.Registration__c.create({
                     'Event__c': event_id,
                     'Contact__c': p,
                     'Event_Date__c': event_date,
-                    'Status__c': 'Attended',
-                    })
+                    'Status__c': event_status,
+                })
 
+    def registration_statuses(self):
+        """
+        Get the statuses of the registration.
+        """
+        values = []
+        reg_meta = self.connection.Registration__c.describe()
+        for f in reg_meta['fields']:
+            if f['name'] == 'Status__c':
+                for v in f['picklistValues']:
+                    if v['active']:
+                        values.append(v['value'])
+                break
+
+        return sorted(values)
 

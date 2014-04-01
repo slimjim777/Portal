@@ -383,7 +383,10 @@ def registrations():
         # Get the event attendees from Salesforce
         sf_person = SFPerson()
 
-        event_date = time.strftime('%Y-%m-%d')
+        if not request.json.get('event_date'):
+            event_date = time.strftime('%Y-%m-%d')
+        else:
+            event_date = request.json['event_date']
         attendees = sf_person.event_attendees(event_id, event_date)
 
         return jsonify(result=attendees)
@@ -404,11 +407,13 @@ def registrations_count():
         return jsonify({'response': 'Failed', 'error': "The 'event_id' must be supplied."})
 
     event_id = request.json['event_id']
+    if not request.json.get('event_date'):
+        event_date = time.strftime('%Y-%m-%d')
+    else:
+        event_date = request.json['event_date']
     
     # Get the event attendees from Salesforce
     sf_person = SFPerson()
-
-    event_date = time.strftime('%Y-%m-%d')
     attendees_count = sf_person.event_attendees_count(event_id, event_date)
 
     return jsonify(result=attendees_count)
@@ -526,9 +531,29 @@ def registration_add():
         return jsonify({'response': 'Failed', 'error': "Both 'event_id' and 'people' list must be supplied."})
 
     sf_person = SFPerson()
-    event_date = time.strftime('%Y-%m-%d')
-    result = sf_person.registration_add(request.json['event_id'], event_date,  request.json['people'])
+    if not request.json.get('event_date'):
+        event_date = time.strftime('%Y-%m-%d')
+    else:
+        event_date = request.json['event_date']
+    result = sf_person.registration_add(request.json['event_id'], event_date, request.json['status'], request.json['people'])
     
     return jsonify(result=result)
 
+@app.route("/rest/v1.0/registrations/statuses", methods=['POST'])
+def registration_statuses():
+    """
+    Called by the portal.
+    Add a registration from Salesforce.
+    """
+    if not is_authenticated():
+        abort(403)
+
+    # Validate the JSON message
+    if not request.json:
+        abort(400)
+
+    sf_person = SFPerson()
+    result = sf_person.registration_statuses()
+    
+    return jsonify(result=result)
 

@@ -339,8 +339,10 @@ function schoolYear(contactType, schoolYr) {
 }
 
 function registrationRegistered(event_id) {
+    var eventDate = $("#event_date").val();
     var postdata = {
-        event_id: event_id
+        event_id: event_id,
+        event_date: eventDate
     };
 
     var p = $('#a-people-attendees');
@@ -365,10 +367,10 @@ function registrationRegistered(event_id) {
             $message.show().fadeOut(2000);
             $(el).attr('class', classNameUndo);
         } else {
-            var table = '<table class="grid"><tr><th>Name</th><th>Status</th><th></th></tr>';
+            var table = '<table class="grid"><tr><th>Last Name</th><th>First Name</th><th>Type</th><th>Status</th><th></th></tr>';
             for (dd in data.result) {
                 var d = data.result[dd];
-                table += '<tr><td>' + d.Contact__r.Name + '</td><td>' + d.Status__c + '</td><td><button onclick="registrationDelete(\'' + d.Id + '\')" class="a-remove">Remove</button></td></tr>';
+                table += '<tr><td>' + d.Contact__r.LastName + '</td><td>' + d.Contact__r.FirstName + '</td><td>'+ d.Contact__r.Contact_Type__c + '</td><td>' + d.Status__c + '</td><td><button onclick="registrationDelete(\'' + d.Id + '\')" class="a-remove">Remove</button></td></tr>';
             }
             table += '</table>';
             p.append(table);
@@ -381,8 +383,10 @@ function registrationRegistered(event_id) {
 }
 
 function registrationRegisteredCount(event_id) {
+    var eventDate = $("#event_date").val();
     var postdata = {
-        event_id: event_id
+        event_id: event_id,
+        event_date: eventDate
     };
 
     var p = $('#a-people-attendee-count');
@@ -448,9 +452,13 @@ function registrationDelete(regId) {
 
 function registrationAdd(contactId) {
     var eventId = $("#event_id").val();
+    var eventDate = $("#event_date").val();
+
     var postdata = {
         event_id: eventId,
-        people: [contactId]
+        event_date: eventDate,
+        people: [contactId],
+        status: registrationStatus()
     };
 
     var request = $.ajax({
@@ -474,5 +482,19 @@ function registrationAdd(contactId) {
       }
     });
 
+}
+
+function registrationStatus()
+{
+    var elements = $( "input[name=statuses]" );
+    for (var i in elements) {
+        el = elements[i];
+        if (el.checked) {
+            // Get the label text
+            var $label = $("label[for='"+el.id+"']");
+            return $label.text();
+        }
+    }
+    return '';
 }
 
