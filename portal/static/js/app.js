@@ -391,12 +391,12 @@ function registrationRegisteredCount(event_id) {
     };
 
     var p = $('#a-people-attendee-count');
-    p.empty();
+    //p.empty();
 
     // Add progress bar
-    var $progress = $("<div>", {id: "a-progress"});
-    $progress.progressbar({value: false});
-    p.append($progress)
+    //var $progress = $("<div>", {id: "a-progress"});
+    //$progress.progressbar({value: false});
+    //p.append($progress)
 
     var request = $.ajax({
       type: 'POST',
@@ -477,9 +477,9 @@ function registrationAdd(contactId) {
             $message.show().fadeOut(2000);
         } else {
             registrationRegisteredCount(eventId);
-            $message.text('Registration successful.');
-            $message.attr('class', 'ui-state-highlight ui-corner-all');
-            $message.show().fadeOut(2000);            
+            //$message.text('Registration successful.');
+            //$message.attr('class', 'ui-state-highlight ui-corner-all');
+            //$message.show().fadeOut(2000);
         }
       }
     });
