@@ -373,6 +373,7 @@ function registrationRegistered(event_id) {
                 table += '<tr><td>' + d.Contact__r.LastName + '</td><td>' + d.Contact__r.FirstName + '</td><td>'+ d.Contact__r.Contact_Type__c + '</td><td>' + d.Status__c + '</td><td><button onclick="registrationDelete(\'' + d.Id + '\')" class="a-remove">Remove</button></td></tr>';
             }
             table += '</table>';
+            p.empty();
             p.append(table);
             $( ".a-remove" ).button({icons: {primary: 'ui-icon-close'}, text: false});
             $($progress).remove();
@@ -413,6 +414,7 @@ function registrationRegisteredCount(event_id) {
         } else {
             var number = data.result[0]['expr0']
             var table = "<span>" + number + "</span>";
+            p.empty();
             p.append(table);
             $($progress).remove();
         }

@@ -18,7 +18,7 @@
            <label for="event_date">Event Date</label>
       </div>
       <div class="subcell-data">
-           <input type="text" id="event_date" value="{{ event_date }}" readonly="readonly" />
+           <input type="text" id="event_date" value="{{ event_date }}" readonly="readonly" onchange="registrationRegisteredCount('{{ event.Id }}')" />
       </div>
    </div>
 </div>
