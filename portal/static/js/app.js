@@ -308,7 +308,8 @@ function registrationFindPerson(name) {
             var table = '<table class="grid"><tr><th></th><th>Name</th><th>Contact Type</th><th>Gender</th><th>School Year</th></tr>';
             for (dd in data.result) {
                 var d = data.result[dd];
-                table += "<tr><td><button class=\"a-add\" onclick=\"registrationAdd('" + d.Id + "')\">Add</button></td>";
+                table += '<tr id="contact' + d.Id + '">';
+                table += "<td><button class=\"a-add\" onclick=\"registrationAdd('" + d.Id + "')\">Add</button></td>";
                 table += '<td><a id="c-' + d.ExternalId__c +'" href="/people/'+ d.ExternalId__c +'">' + d.Name + '</a></td>' +
                         '<td>' + d.Contact_Type__c + '</td><td>' + empty(d.Gender__c) + '</td><td>' + schoolYear(d.Contact_Type__c, d.School_Year__c) + '</td></tr>';
             }
@@ -416,7 +417,7 @@ function registrationRegisteredCount(event_id) {
             var table = "<span>" + number + "</span>";
             p.empty();
             p.append(table);
-            $($progress).remove();
+            //$($progress).remove();
         }
       }
     });
@@ -476,6 +477,7 @@ function registrationAdd(contactId) {
             $message.attr('class', 'ui-state-error ui-corner-all');
             $message.show().fadeOut(2000);
         } else {
+            $('#contact' + contactId).fadeOut(1000);
             registrationRegisteredCount(eventId);
             //$message.text('Registration successful.');
             //$message.attr('class', 'ui-state-highlight ui-corner-all');
