@@ -106,12 +106,13 @@
           contentType:"application/json",
           dataType: "json",
           success: function(data) {
+              console.log(data.result);
               var table = '<p>Select the person</p>' +
                             '<table class="grid"><tr><th>Name</th><th>Email</th></tr>';
               for (dd in data.result) {
                   var d = data.result[dd];
-                  table += '<tr><td><a id="b-' + d.personid +'" href="/accounts/new/'+ d.personid +'">' + d.name + '</a></td>' +
-                          '<td>' + d.email + '</td></tr>';                  
+                  table += '<tr><td><a id="b-' + d.ExternalId__c +'" href="/accounts/new/'+ d.ExternalId__c +'">' + d.Name + '</a></td>' +
+                          '<td>' + d.Email + '</td></tr>';
               }
               table += '</table>';
               p.append(table);

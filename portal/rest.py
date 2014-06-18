@@ -112,7 +112,6 @@ def person_update(personid):
 
     # Update the person's details
     person = Person()
-    app.logger.debug(request.json)
     result = person.update(request.json)
     
     # Update the person record in CRM
