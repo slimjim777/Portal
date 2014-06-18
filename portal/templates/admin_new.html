@@ -106,7 +106,6 @@
           contentType:"application/json",
           dataType: "json",
           success: function(data) {
-              console.log(data.result);
               var table = '<p>Select the person</p>' +
                             '<table class="grid"><tr><th>Name</th><th>Email</th></tr>';
               for (dd in data.result) {
