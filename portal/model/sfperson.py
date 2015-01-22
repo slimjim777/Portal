@@ -179,6 +179,8 @@ class SFPerson(object):
 
         if add_action and sf_link_id:
             # Update the record
+            del sf_record['Contact__c']
+            del sf_record['Team__c']
             self.connection.ContactTeamLink__c.update(sf_link_id, sf_record)
         elif add_action and not sf_link_id:
             # Create a membership link
@@ -337,4 +339,13 @@ class SFPerson(object):
                 break
 
         return sorted(values)
+
+    def person_by_id(self, sf_id):
+        """
+        Get the Salesforce person from their ID
+        """
+        soql = "select Id from Contact where Id = '%s'" % sf_id
+        result = self.connection.query_all(soql)
+
+        return result
 
